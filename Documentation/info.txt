@@ -1,0 +1,34 @@
+Still have an issue.  This line:
+[21:38:27.085] [@Zag#689392444394070|(-342.10,148.65,0.13,-9.94)|(472674/472674)] [Flesh Eating Shriek {4297170614222848}:10545000040696|(-337.59,122.96,0.01,169.94)|(318019/325732)] [Shocked {3960050041225514}] [ApplyEffect {836045448945477}: Damage {836045448945501}] (442* energy {836045448940874}) <5299.0>
+
+Parses great but the source is printed as:
+src: PLAYER "▌▌▌" id[1:689392444394070:0]
+
+As you can see the player Zag is shown as ▌▌▌
+Can you find the issue?
+
+
+
+
+You said:
+The next part is to implement the NTP timing.
+The game has a unique feature on the time displayed in the log files.  The time in the files is based on server time but adjusted to local time.  The servers are synchronized with NTP timing servers.  If you have a system that is 2 minutes faster than NTP time you will get a log file entries that are NTP time with adjusted to your time zone.
+There are several reason we need to deal with this.  We might receive combat log lines up to 3 seconds late.  If we want to display any information based on that entry that is time related we need to know what the difference is between the entry and the current time.  The current time should just be the NTP time with time zone adjustments.
+In my "Log File Reader.zip" I implemented this calculation in the TimeKeeper class to find the difference.  And then the Log_Time class could generate a Combined_Time.
+The reason for this is that the combat log lines are not including dates.  So we could start to the combat log at 11:55pm and 5 min later just past midnight and the log files will show a massive "negative" time jump.
+The fix is to infer a date and I found it easiest is to use the AreaEntered as a key moment.  What ever the time is at the moment of an AreaEntered we can apply the current date and time to that event.  We then can keep applying the date and time until we see a time entry that "jump back" in time more than a minute and then add a day to the base date and keep going.  We need to do this continuously since it can be that the character could be logged on in the same area for more than two days.  Unlikely but an issue to deal with.
+This should not be done during text to CombatLine at parse time.  But we need to solve for two capabilities.  A class or struct that can be used to find NTP time and calculate the difference between the local computer clock and the NTP time adjusted for time zone.
+These NTP Servers are good starts:
+0.pool.ntp.org
+1.pool.ntp.org
+2.pool.ntp.org
+3.pool.ntp.org
+time-a-g.nist.gov
+ntp-d.nist.gov
+time-b-g.nist.gov
+time-c-g.nist.gov
+time-c-b.nist.gov
+time-e-g.nist.gov
+time.windows.com
+
+The second part is a time cruncher class (A better name might be needed) that needs to be able to receive a vector or list or array of CombatLine and go through sequentially and set dates for refined_epoch_ms.  This really might need some updating.  The cruncher should instantiate with NTP class given to it.  The reason we might want to parse several files simultaneously and NTP request should just be done once for the life of the run of the application.  The cruncher should keep track of the dates, reset the date based on AreaEnter and keep track.  We also need to consider that the crusher might not get the complete log file at once.  The entries might be received one at a time.  

@@ -1,0 +1,8 @@
+﻿  example_swtor_integration.cpp
+  ntp_timekeeper_swtor.cpp
+  swtor_parser.cpp
+  time_cruncher_swtor.cpp
+  Generating Code...
+  swtor_parser.vcxproj -> K:\CPlusPlus\swtor_parser\x64\Debug\swtor_parser.exe
+  'pwsh.exe' is not recognized as an internal or external command,
+  operable program or batch file.
