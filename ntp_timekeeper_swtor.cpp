@@ -103,6 +103,16 @@ bool NTPTimeKeeper::isSynchronized() const {
     return synchronized_;
 }
 
+std::chrono::local_time NTPTimeKeeper::getLocalTime() const {
+    auto now = std::chrono::system_clock::now();
+	auto tz = std::chrono::current_zone();
+	auto local_now = tz->to_local(now);
+	std::chrono::local_time<std::chrono::system_clock>
+    int64_t offset = getOffsetMs();
+    std::chrono::local_time<std::chrono::milliseconds> ms_diff{ std::chrono::milliseconds(offset) };
+    return local_now - ms_diff;
+}
+
 std::chrono::system_clock::time_point NTPTimeKeeper::getNTPTime() const {
     auto now = std::chrono::system_clock::now();
     return convertToNTP(now);

@@ -3,6 +3,34 @@
   "WorkspaceRootPath": "K:\\CPlusPlus\\swtor_parser\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|K:\\CPlusPlus\\swtor_parser\\ntp_timekeeper_swtor.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|solutionrelative:ntp_timekeeper_swtor.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|K:\\CPlusPlus\\swtor_parser\\ntp_timekeeper_swtor.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|solutionrelative:ntp_timekeeper_swtor.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|K:\\CPlusPlus\\swtor_parser\\example_swtor_integration.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|solutionrelative:example_swtor_integration.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|K:\\CPlusPlus\\swtor_parser\\swtor_parser.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|solutionrelative:swtor_parser.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|K:\\CPlusPlus\\swtor_parser\\time_cruncher_swtor.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|solutionrelative:time_cruncher_swtor.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|K:\\CPlusPlus\\swtor_parser\\swtor_parser.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|solutionrelative:swtor_parser.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|K:\\CPlusPlus\\swtor_parser\\time_cruncher_swtor.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|solutionrelative:time_cruncher_swtor.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|K:\\CPlusPlus\\swtor_parser\\combat_stats.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{46878090-AF43-4094-913B-D9A166BFA8C2}|swtor_parser.vcxproj|solutionrelative:combat_stats.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
@@ -22,11 +50,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 7,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 9,
               "Title": "stat_keeper.h",
               "DocumentMoniker": "K:\\CPlusPlus\\swtor_parser\\stat_keeper.h",
               "RelativeDocumentMoniker": "stat_keeper.h",
@@ -40,13 +68,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 7,
               "Title": "combat_stats.cpp",
               "DocumentMoniker": "K:\\CPlusPlus\\swtor_parser\\combat_stats.cpp",
               "RelativeDocumentMoniker": "combat_stats.cpp",
               "ToolTip": "K:\\CPlusPlus\\swtor_parser\\combat_stats.cpp",
               "RelativeToolTip": "combat_stats.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-11-12T19:04:24.071Z",
               "IsPinned": true,
@@ -54,13 +82,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 8,
               "Title": "combat_stats.h",
               "DocumentMoniker": "K:\\CPlusPlus\\swtor_parser\\combat_stats.h",
               "RelativeDocumentMoniker": "combat_stats.h",
               "ToolTip": "K:\\CPlusPlus\\swtor_parser\\combat_stats.h",
               "RelativeToolTip": "combat_stats.h",
-              "ViewState": "AgIAAEIAAAAAAAAAAAAAAHQAAABJAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-11-12T18:43:34.888Z",
               "IsPinned": true,
@@ -77,6 +105,97 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "time_cruncher_swtor.h",
+              "DocumentMoniker": "K:\\CPlusPlus\\swtor_parser\\time_cruncher_swtor.h",
+              "RelativeDocumentMoniker": "time_cruncher_swtor.h",
+              "ToolTip": "K:\\CPlusPlus\\swtor_parser\\time_cruncher_swtor.h",
+              "RelativeToolTip": "time_cruncher_swtor.h",
+              "ViewState": "AgIAAFUAAAAAAAAAAAAkwIUAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-11-17T11:06:42.002Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ntp_timekeeper_swtor.cpp",
+              "DocumentMoniker": "K:\\CPlusPlus\\swtor_parser\\ntp_timekeeper_swtor.cpp",
+              "RelativeDocumentMoniker": "ntp_timekeeper_swtor.cpp",
+              "ToolTip": "K:\\CPlusPlus\\swtor_parser\\ntp_timekeeper_swtor.cpp",
+              "RelativeToolTip": "ntp_timekeeper_swtor.cpp",
+              "ViewState": "AgIAADkAAAAAAAAAAAAkwG0AAAAzAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-11-17T10:55:35.266Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ntp_timekeeper_swtor.h",
+              "DocumentMoniker": "K:\\CPlusPlus\\swtor_parser\\ntp_timekeeper_swtor.h",
+              "RelativeDocumentMoniker": "ntp_timekeeper_swtor.h",
+              "ToolTip": "K:\\CPlusPlus\\swtor_parser\\ntp_timekeeper_swtor.h",
+              "RelativeToolTip": "ntp_timekeeper_swtor.h",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAkwEUAAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-11-17T10:54:47.636Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "time_cruncher_swtor.cpp",
+              "DocumentMoniker": "K:\\CPlusPlus\\swtor_parser\\time_cruncher_swtor.cpp",
+              "RelativeDocumentMoniker": "time_cruncher_swtor.cpp",
+              "ToolTip": "K:\\CPlusPlus\\swtor_parser\\time_cruncher_swtor.cpp",
+              "RelativeToolTip": "time_cruncher_swtor.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACMAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-11-16T11:03:31.266Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "example_swtor_integration.cpp",
+              "DocumentMoniker": "K:\\CPlusPlus\\swtor_parser\\example_swtor_integration.cpp",
+              "RelativeDocumentMoniker": "example_swtor_integration.cpp",
+              "ToolTip": "K:\\CPlusPlus\\swtor_parser\\example_swtor_integration.cpp",
+              "RelativeToolTip": "example_swtor_integration.cpp",
+              "ViewState": "AgIAAPEAAAAAAAAAAAAQwCABAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-11-16T11:00:15.022Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "swtor_parser.cpp",
+              "DocumentMoniker": "K:\\CPlusPlus\\swtor_parser\\swtor_parser.cpp",
+              "RelativeDocumentMoniker": "swtor_parser.cpp",
+              "ToolTip": "K:\\CPlusPlus\\swtor_parser\\swtor_parser.cpp",
+              "RelativeToolTip": "swtor_parser.cpp",
+              "ViewState": "AgIAAA4BAAAAAAAAAAAkwD4BAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-11-16T10:24:12.61Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "swtor_parser.h",
+              "DocumentMoniker": "K:\\CPlusPlus\\swtor_parser\\swtor_parser.h",
+              "RelativeDocumentMoniker": "swtor_parser.h",
+              "ToolTip": "K:\\CPlusPlus\\swtor_parser\\swtor_parser.h",
+              "RelativeToolTip": "swtor_parser.h",
+              "ViewState": "AgIAAKQAAAAAAAAAAAAkwOAAAAALAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-11-16T09:47:33.501Z",
+              "EditorCaption": ""
             }
           ]
         }

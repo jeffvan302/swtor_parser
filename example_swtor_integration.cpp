@@ -5,6 +5,7 @@
 #include <fstream>
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
 /**
  * Example: Integrating NTP timing with swtor_parser
@@ -39,12 +40,17 @@ std::vector<std::string> readLogFile(const std::string& filename) {
 }
 
 int main(int argc, char* argv[]) {
+	std::unordered_map<uint64_t, std::string> ability_cache; // Example cache for abilities
+    std::unordered_map<uint64_t, std::string> event_cache; // Example cache for abilities
+    std::unordered_map<uint64_t, std::string> subevent_cache; // Example cache for abilities
+    std::unordered_map<uint64_t, std::string> subevent_cache2; // Example cache for abilities
+
     std::cout << "=== SWTOR Parser with NTP Timing ===" << std::endl;
     std::cout << std::endl;
     
     // Step 1: Initialize NTP Time Keeper
     std::cout << "Step 1: Initializing NTP synchronization..." << std::endl;
-    auto ntp_keeper = std::make_shared<swtor::NTPTimeKeeper>();
+    auto ntp_keeper = new swtor::NTPTimeKeeper(); //std::make_shared<swtor::NTPTimeKeeper>();
     
     // Synchronize with NTP servers
     if (!ntp_keeper->synchronize()) {
@@ -128,6 +134,35 @@ int main(int argc, char* argv[]) {
     std::cout << "  Processed: " << timing_processed << " lines" << std::endl;
     std::cout << std::endl;
     
+
+    std::cout << "Step 6: Catalog data:" << std::endl;
+    for (auto& line : parsed_lines) {
+        if (!event_cache.contains(line.event.type_id)) {
+            event_cache[line.event.type_id] = line.event.type_name;
+		}
+        if (!subevent_cache.contains(line.event.action_id)) {
+            if (line.event.action_id != line.ability.id && line.source.is_player) {
+                subevent_cache[line.event.action_id] = line.event.action_name;
+                subevent_cache2[line.event.action_id] = line.event.data;
+            }
+        }
+        if (!ability_cache.contains(line.ability.id)) {
+            ability_cache[line.ability.id] = line.ability.name;
+		}
+    }
+
+    std::cout << "        Catalog complete!" << std::endl;
+    std::cout << "Events" << std::endl;
+    for (const auto& [id, name] : event_cache) {
+        std::cout << "  " << name << " = " << id << "," << std::endl;
+	}
+
+    std::cout << "Sub Events" << std::endl;
+    for (const auto& [id, name] : subevent_cache2) {
+        std::cout << "  " << name << " = " << id << "," << std::endl;
+    }
+
+
     // Step 6: Show results
     std::cout << "Results (first 5 entries):" << std::endl;
     std::cout << std::string(80, '-') << std::endl;
@@ -141,9 +176,12 @@ int main(int argc, char* argv[]) {
         std::cout << "  Full time: " << combined.toString() << std::endl;
         std::cout << "  ISO 8601:  " << combined.toISOString() << std::endl;
         std::cout << "  Epoch ms:  " << line.t.refined_epoch_ms << std::endl;
-		std::cout << "  Event:     " << line.evt.effect.name << std::endl;
-		std::cout << "  Area:      " << line.area_entered.area.name << std::endl;
-        std::cout << "  Area:      " << line.discipline_changed.discipline.name << std::endl;
+		std::cout << "  Event:     " << line.event.type_name << std::endl;
+        std::cout << "  Action:     " << line.event.action_name << std::endl;
+		if (line == swtor::EventType::AreaEntered)
+			std::cout << "  Area:      " << line.area_entered.area.name << std::endl;
+		if (line == swtor::EventType::DisciplineChanged)
+            std::cout << "  Discipline:      " << line.discipline_changed.discipline.name << std::endl;
         
         // Show source and target
         if (!line.source.name.empty()) {
@@ -204,11 +242,12 @@ int main(int argc, char* argv[]) {
         const auto& line = parsed_lines[i];
         
         // Check if this is an AreaEntered event
-        if (std::string_view(line.evt.effect.name).find("AreaEntered") != std::string_view::npos) {
+        if (line.event == swtor::EventType::AreaEntered) {
             auto combined = swtor::CombinedTime::fromEpochMs(line.t.refined_epoch_ms);
             std::cout << "  [" << (i + 1) << "] " 
-                     << combined.toString() << " - "
-                     << line.evt.effect.name << std::endl;
+                     << combined.toString() 
+                     << " - " << line.area_entered.area.name
+                     << " [D " << line.area_entered.difficulty.name << "]" << std::endl;
             area_count++;
         }
     }
@@ -249,6 +288,19 @@ int main(int argc, char* argv[]) {
     
     std::cout << std::endl;
     std::cout << "=== Processing Complete ===" << std::endl;
+    std::cout << "===   Timing Reference  ===" << std::endl;
+	
+    auto now = std::chrono::system_clock::now();
+    auto tz = std::chrono::current_zone();
+    auto local_now = tz->to_local(now);
+    int64_t offset = 4;
+    std::chrono::local_time<std::chrono::milliseconds> ms_diff{ std::chrono::milliseconds(offset) };
+	local_now += ms_diff;
+
+    std::cout << ntp_keeper->getLocalTime() << std::endl;
+    std::cout << local_now << std::endl;
+    std::cout << "===   Timing Test Done  ===" << std::endl;
+
     
     return 0;
 }

@@ -66,6 +66,9 @@ public:
     // Check if synchronization has been performed successfully
     bool isSynchronized() const;
 
+	// Get the current local time adjusted by NTP offset
+    std::chrono::local_time getLocalTime() const;
+    
     // Get the current NTP time
     std::chrono::system_clock::time_point getNTPTime() const;
     int64_t getNTPTimeMs() const;

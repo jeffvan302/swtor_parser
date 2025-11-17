@@ -60,83 +60,6 @@ namespace swtor {
         }
 
         // ------------- Special-event field parsing (declared inline in header) -------------
-        inline EventKind detect_event_kind(std::string_view event_name) {
-            if (event_name == "ApplyEffect") return EventKind::ApplyEffect;
-            if (event_name == "RemoveEffect") return EventKind::RemoveEffect;
-            if (event_name == "Event") return EventKind::Event;
-            if (event_name == "Spend") return EventKind::Spend;
-            if (event_name == "Restore") return EventKind::Restore;
-            if (event_name == "ModifyCharges") return EventKind::ModifyCharges;
-            if (event_name == "AreaEntered") return EventKind::AreaEntered;
-            if (event_name == "DisciplineChanged") return EventKind::DisciplineChanged;
-            return EventKind::Unknown;
-        }
-
-        inline EventKind detect_event_kind(uint64_t kind_id) {
-            switch (kind_id) {
-            case KINDID_ApplyEffect:       return EventKind::ApplyEffect;
-            case KINDID_RemoveEffect:      return EventKind::RemoveEffect;
-            case KINDID_Event:             return EventKind::Event;
-            case KINDID_Spend:             return EventKind::Spend;
-            case KINDID_Restore:           return EventKind::Restore;
-            case KINDID_ModifyCharges:     return EventKind::ModifyCharges;
-            case KINDID_AreaEntered:       return EventKind::AreaEntered;
-            case KINDID_DisciplineChanged: return EventKind::DisciplineChanged;
-            default:                       return EventKind::Unknown;
-            }
-        }
-
-        inline uint64_t kind_id_from(EventKind k) {
-            switch (k) {
-            case EventKind::ApplyEffect:       return KINDID_ApplyEffect;
-            case EventKind::RemoveEffect:      return KINDID_RemoveEffect;
-            case EventKind::Event:             return KINDID_Event;
-            case EventKind::Spend:             return KINDID_Spend;
-            case EventKind::Restore:           return KINDID_Restore;
-            case EventKind::ModifyCharges:     return KINDID_ModifyCharges;
-            case EventKind::AreaEntered:       return KINDID_AreaEntered;
-            case EventKind::DisciplineChanged: return KINDID_DisciplineChanged;
-            default:                           return 0ULL;
-            }
-        }
-
-
-        CombatRole deduce_combat_role(Discipline disc) {
-			CombatRole result = CombatRole::Unknown;
-            switch (disc) {
-				// Trooper/Bounty Hunter
-			case Discipline::CombatMedic:
-			case Discipline::Bodyguard:
-				result = CombatRole::Healer;
-				break;
-			case Discipline::ShieldSpecialist:
-			case Discipline::ShieldTech:
-				result = CombatRole::Tank;
-				break;
-				// Smuggler/Imperial Agent
-			case Discipline::Sawbones:
-			case Discipline::Medicine:
-				result = CombatRole::Healer;
-				break;
-				// Jedi Knight/Sith Warrior
-			case Discipline::Defense:
-			case Discipline::Immortal:
-				result = CombatRole::Tank;
-				break;
-				// Jedi Consular/Sith Inquisitor
-            case Discipline::KineticCombat:
-            case Discipline::Darkness:
-				result = CombatRole::Tank;
-				break;
-			case Discipline::Seer:
-			case Discipline::Corruption:
-				result = CombatRole::Healer;
-				break;
-			default:
-				result = CombatRole::DPS;
-
-            }
-        }
 
 
         inline bool parse_area_entered(std::string_view event_text,
@@ -212,39 +135,15 @@ namespace swtor {
             );
             auto name = event_text.substr(0, name_end);
             while (!name.empty() && name.back() == ' ') name.remove_suffix(1);
-
+			out.event.type_name = std::string(name);
             
 
             if (brace != std::string_view::npos) {
                 size_t rb = event_text.find('}', brace + 1);
                 if (rb != std::string_view::npos) {
-                    out.evt.kind_id = std::strtoull(event_text.substr(brace + 1, rb - brace - 1).data(), nullptr, 10);
+                    out.event.type_id = std::strtoull(event_text.substr(brace + 1, rb - brace - 1).data(), nullptr, 10);
                 }
             }
-
-            if (out.evt.kind_id > 0) {
-				out.evt.kind = detect_event_kind(out.evt.kind_id);
-            }
-            else {
-                out.evt.kind = detect_event_kind(name);
-            }
-
-            if (out.evt.kind == EventKind::AreaEntered) {
-                if (!parse_area_entered(event_text, value_text, out.area_entered))
-                    return ParseStatus::Malformed;
-                if (!angle_text.empty() && !angle_text.empty() && angle_text.front() == 'v') {
-                    out.area_entered.version.assign(angle_text.data(), angle_text.size());
-                }
-                out.evt.effect = out.area_entered.area;
-                return ParseStatus::Ok;
-            }
-            else if (out.evt.kind == EventKind::DisciplineChanged) {
-                if (!parse_discipline_changed(event_text, out.discipline_changed))
-                    return ParseStatus::Malformed;
-                out.evt.effect = out.discipline_changed.discipline;
-                return ParseStatus::Ok;
-            }
-
             if (colon != std::string_view::npos) {
                 auto effect_part = event_text.substr(colon + 1);
                 while (!effect_part.empty() && effect_part.front() == ' ') effect_part.remove_prefix(1);
@@ -258,16 +157,92 @@ namespace swtor {
                     eff.id = 0;
                 }
                 else {
+                    out.event.action_name = std::string(effect_part.substr(0, lb));
+                    out.event.action_id = std::strtoull(effect_part.substr(lb + 1, rb - lb - 1).data(), nullptr, 10);
                     eff.name = std::string(effect_part.substr(0, lb));
                     while (!eff.name.empty() && eff.name.back() == ' ') eff.name.pop_back();
                     eff.id = std::strtoull(effect_part.substr(lb + 1, rb - lb - 1).data(), nullptr, 10);
                 }
-                out.evt.effect = std::move(eff);
             }
+
+            if (out.event == EventType::AreaEntered) {
+                if (!parse_area_entered(event_text, value_text, out.area_entered))
+                    return ParseStatus::Malformed;
+                if (!angle_text.empty() && !angle_text.empty() && angle_text.front() == 'v') {
+                    out.area_entered.version.assign(angle_text.data(), angle_text.size());
+                }
+                return ParseStatus::Ok;
+            }
+            else if (out.event == EventType::DisciplineChanged) {
+                if (!parse_discipline_changed(event_text, out.discipline_changed))
+                    return ParseStatus::Malformed;
+                return ParseStatus::Ok;
+            }
+            out.event.data = std::string(event_text);
             return ParseStatus::Ok;
         }
 
     } // namespace detail
+
+    
+    bool EventEffect::matches(const EventType& et) const
+    {
+		return type_id == static_cast<uint64_t>(et);
+    }
+
+
+    bool EventEffect::matches(const uint64_t id) const{
+        if (type_id == id) {
+            return true;
+		}
+        if (action_id == id) {
+            return true;
+        }
+		return false;
+    }
+
+    bool EventEffect::matches(const EventActionType& eat) const {
+        return matches(static_cast<uint64_t>(eat));
+    }
+
+
+    CombatRole deduce_combat_role(Discipline disc) {
+        CombatRole result = CombatRole::Unknown;
+        switch (disc) {
+            // Trooper/Bounty Hunter
+        case Discipline::CombatMedic:
+        case Discipline::Bodyguard:
+            result = CombatRole::Healer;
+            break;
+        case Discipline::ShieldSpecialist:
+        case Discipline::ShieldTech:
+            result = CombatRole::Tank;
+            break;
+            // Smuggler/Imperial Agent
+        case Discipline::Sawbones:
+        case Discipline::Medicine:
+            result = CombatRole::Healer;
+            break;
+            // Jedi Knight/Sith Warrior
+        case Discipline::Defense:
+        case Discipline::Immortal:
+            result = CombatRole::Tank;
+            break;
+            // Jedi Consular/Sith Inquisitor
+        case Discipline::KineticCombat:
+        case Discipline::Darkness:
+            result = CombatRole::Tank;
+            break;
+        case Discipline::Seer:
+        case Discipline::Corruption:
+            result = CombatRole::Healer;
+            break;
+        default:
+            result = CombatRole::DPS;
+
+        }
+		return result;
+    }
 
     // ===================== tiny utilities used by hot path =====================
     static inline void trim_ws(std::string_view& sv) {
@@ -387,12 +362,12 @@ namespace swtor {
     }
 
     // [Display|Position|Health] — players, companions, NPC/objects
-    static inline bool parse_entity(std::string_view br, EntityRef& out) {
+    static inline bool parse_entity(std::string_view br, Entity& out) {
         auto core = strip_one(br, '[', ']');
         out.display.assign(core.data(), core.size());
 
         if (core.empty()) { out.empty = true; return true; }
-        if (core == "=") { out.empty = false; out.name = "="; return true; }
+        if (core == "=") { out.empty = false; out.is_same_as_source = true; return true; }
         out.empty = false;
 
         std::array<std::string_view, 3> parts{};
@@ -769,7 +744,7 @@ namespace swtor {
         if (tgtbr.empty()) return ParseStatus::Malformed;
         if (!parse_entity(tgtbr, out.target))
             return ParseStatus::Malformed; // :contentReference[oaicite:2]{index=2}
-        if (!out.target.empty && out.target.name == "=") {
+        if (!out.target.empty && out.target.is_same_as_source) {
             // SWTOR self-target shorthand ("=") — mirror source quickly
             out.target = out.source; // :contentReference[oaicite:3]{index=3}
         }
@@ -805,11 +780,6 @@ namespace swtor {
             st != ParseStatus::Ok) {
             return st; // handles AreaEntered & DisciplineChanged, sets evt.kind/effect, etc.
         } // :contentReference[oaicite:7]{index=7} :contentReference[oaicite:8]{index=8}
-
-        // If it's one of the special events, we're done. (Version tag lives in angle_text.)
-        if (out.evt.kind == EventKind::AreaEntered || out.evt.kind == EventKind::DisciplineChanged) {
-            return ParseStatus::Ok; // :contentReference[oaicite:9]{index=9}
-        }
 
         // Parse trailing value/charges/mitigation/threat (fast path + tolerant fallback)
         std::string_view tailSV;

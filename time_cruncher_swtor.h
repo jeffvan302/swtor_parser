@@ -32,6 +32,11 @@ public:
         bool enable_late_arrival_adjustment = true
     );
 
+    explicit TimeCruncher(
+        NTPTimeKeeper *ntp_keeper,
+        bool enable_late_arrival_adjustment = true
+    );
+
     ~TimeCruncher();
 
     /**

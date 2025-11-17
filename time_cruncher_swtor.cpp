@@ -30,6 +30,19 @@ TimeCruncher::TimeCruncher(
     stats_ = {0, 0, 0, 0, 0, 0};
 }
 
+TimeCruncher::TimeCruncher(
+    NTPTimeKeeper * ntp_keeper,
+    bool enable_late_arrival_adjustment
+) : ntp_keeper_(ntp_keeper),
+enable_late_arrival_adjustment_(enable_late_arrival_adjustment),
+initialized_(false),
+current_day_offset_(0),
+last_processed_combat_ms_(0),
+last_processed_epoch_ms_(0)
+{
+    stats_ = { 0, 0, 0, 0, 0, 0 };
+}
+
 TimeCruncher::~TimeCruncher() {
 }
 
@@ -97,7 +110,7 @@ bool TimeCruncher::processLine(CombatLine& line) {
 bool TimeCruncher::isAreaEntered(const CombatLine& line) const {
     // Check if this is an AreaEntered event
     // AreaEntered appears as the effect name in the event
-    return (line == swtor::Evt::AreaEntered);
+    return (line == swtor::EventType::AreaEntered);
 }
 
 void TimeCruncher::initializeBaseDate(const CombatLine& line) {

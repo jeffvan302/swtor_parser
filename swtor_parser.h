@@ -42,6 +42,40 @@ namespace swtor {
         SithInquisitor = 16141122432429723681
     };
 
+    enum class EventType: uint64_t {
+        Unknown = 0,
+        Event = 836045448945472,
+        AreaEntered = 836045448953664,
+        Spend = 836045448945473,
+        DisciplineChanged = 836045448953665,
+        ApplyEffect = 836045448945477,
+        RemoveEffect = 836045448945478,
+        ModifyCharges = 836045448953666,
+        Restore = 836045448945476
+	};
+
+    enum class EventActionType : uint64_t {
+        Unknown = 0,
+        Heal = 836045448945500,
+        EnterCombat = 836045448945489,
+        ExitCombat = 836045448945490,
+        Damage = 836045448945501,
+        FailedEffect = 836045448945499,
+        Revived = 836045448945494,
+        ModifyThreat = 836045448945483,
+        FallingDamage = 836045448945484,
+        Death = 836045448945493,
+        TargetSet= 836045448953668,
+        TargetCleared = 836045448953669,
+        AbilityActivate  = 836045448945479,
+        AbilityInterrupt  = 836045448945482,
+        AbilityDeactivate = 836045448945480,
+        AbilityCancel = 836045448945481,
+        energy = 836045448938503,
+        LeaveCover = 836045448945486,
+        Crouch = 836045448945487
+    };
+
     enum class CombatStyle : uint64_t {
         Unknown = 0,
         // Trooper Styles
@@ -155,7 +189,10 @@ namespace swtor {
     };
 
     struct Health { int64_t current{ 0 }; int64_t max{ 0 }; };
-    struct Position { float x{ 0 }, y{ 0 }, z{ 0 }, facing{ 0 }; };
+    struct Position 
+    { float x{ 0 }, y{ 0 }, z{ 0 }, facing{ 0 }; 
+        
+    };
 
     struct CompanionOwner {
         std::string      name_no_at{};
@@ -163,7 +200,7 @@ namespace swtor {
         bool has_owner{ false };
     };
 
-    struct EntityRef {
+    struct Entity {
         std::string      display{};
         std::string      name{};
         std::string      companion_name{};
@@ -171,6 +208,7 @@ namespace swtor {
         bool is_player{ false };
         bool is_companion{ false };
         bool empty{ false };
+        bool is_same_as_source{ false };
         Position pos{};
         Health   hp{};
         CompanionOwner owner{};
@@ -181,23 +219,48 @@ namespace swtor {
         uint64_t id{ 0 };
     };
 
-    enum class EventKind : uint8_t {
-        Unknown = 0,
-        ApplyEffect,
-        RemoveEffect,
-        Event,
-        Spend,
-        Restore,
-        ModifyCharges,
-        AreaEntered,        // Special event for zone changes
-        DisciplineChanged   // Special event for discipline/loadout changes
+    struct EventEffect {
+
+        /// <summary>
+		/// The numeric Type ID if available, otherwise 0. Such as 836045448945477 or ApplyEffect. or 
+        /// </summary>
+        uint64_t  type_id{ 0 };
+
+        /// <summary>
+		/// Action ID is the numeric Action ID if available, otherwise 0. It will reflect the ability or ability-like action.
+        /// </summary>
+        uint64_t  action_id{ 0 };
+
+        /// <summary>
+		/// Name of the event type, such as "ApplyEffect"
+        /// </summary>
+        std::string type_name{};
+        /// <summary>
+		/// Name of the action/ability, such as "Corrosive Grenade"
+        /// </summary>
+        std::string action_name{};
+
+
+        /// <summary>
+		/// Store full event data string for special parsing later (such as AreaEntered)
+        /// </summary>
+        std::string data{};
+
+        bool matches(const EventType& et) const;
+
+        bool matches(const uint64_t id) const;
+
+        bool matches(const EventActionType& eat) const;
+
     };
 
-    struct EventEffect {
-        EventKind kind{ EventKind::Unknown };
-        uint64_t  kind_id{ 0 };
-        NamedId   effect{};
-    };
+
+    inline bool operator==(const EventEffect& p, const EventType& et) { return p.matches(et); }
+
+    inline bool operator==(const EventEffect& p, const EventActionType& eat) { return p.matches(eat); }
+
+    inline bool operator==(const EventEffect& p, const uint64_t id) { return p.matches(id); }
+
 
     struct TimeStamp {
         uint32_t combat_ms{ 0 };          // HH:MM:SS.mmm → ms since midnight
@@ -280,21 +343,26 @@ namespace swtor {
 
     struct CombatLine {
         TimeStamp t{};
-        EntityRef source{};
-        EntityRef target{};
+        Entity source{};
+        Entity target{};
         NamedId   ability{};
-        EventEffect evt{};
+        EventEffect event{};
         Trailing tail{};
 
         // Event-specific data (populated based on evt.kind)
         AreaEnteredData area_entered{};
         DisciplineChangedData discipline_changed{};
+
     };
+
+
+    inline bool operator==(const CombatLine& p, const EventType& et) { return p.event.matches(et); }
+
 
     // Parse a single SWTOR combat log line into CombatLine (allocation-free).
     ParseStatus parse_combat_line(std::string_view line, CombatLine& out);
 
-	CombatRole deduce_combat_role(Discipline disc);
+	extern CombatRole deduce_combat_role(Discipline disc);
 
     // ---------- Pretty printer ----------
     struct PrintOptions {
@@ -327,119 +395,6 @@ namespace swtor {
     bool from_json(std::string_view json, CombatLine& out, detail_json::StringArena& arena);
 
     // ---------- Event filtering sugar ----------
-    struct EventTag {
-        EventKind k;
-        constexpr explicit EventTag(EventKind kk) : k(kk) {}
-    };
-    inline constexpr uint32_t event_bit(EventKind k) { return 1u << static_cast<unsigned>(k); }
-
-    struct EventSet {
-        uint32_t mask{ 0 };
-        constexpr bool matches(const CombatLine& L) const {
-            return (mask & event_bit(L.evt.kind)) != 0u;
-        }
-    };
-    inline constexpr bool operator==(const EventTag& tag, const CombatLine& L) { return L.evt.kind == tag.k; }
-    inline constexpr bool operator==(const CombatLine& L, const EventTag& tag) { return tag == L; }
-    inline constexpr EventSet operator|(EventTag a, EventTag b) { return { event_bit(a.k) | event_bit(b.k) }; }
-    inline constexpr EventSet operator|(EventSet s, EventTag a) { return { s.mask | event_bit(a.k) }; }
-    inline constexpr bool operator==(const EventSet& set, const CombatLine& L) { return set.matches(L); }
-
-    namespace Events {
-        inline constexpr EventTag ApplyEffect{ EventKind::ApplyEffect };
-        inline constexpr EventTag RemoveEffect{ EventKind::RemoveEffect };
-        inline constexpr EventTag Event{ EventKind::Event };
-        inline constexpr EventTag Spend{ EventKind::Spend };
-        inline constexpr EventTag Restore{ EventKind::Restore };
-        inline constexpr EventTag ModifyCharges{ EventKind::ModifyCharges };
-        inline constexpr EventTag AreaEntered{ EventKind::AreaEntered };
-        inline constexpr EventTag DisciplineChanged{ EventKind::DisciplineChanged };
-
-        // bundles
-        inline constexpr EventSet Effects = ApplyEffect | RemoveEffect;
-    }
-
-    // ---------- EventPred (more flexible predicates) ----------
-
-    struct EventPred {
-        // What to match:
-        EventKind kind{ EventKind::Unknown };
-        bool has_kind{ false };
-
-        std::string_view effect_name{};
-        bool has_effect_name{ false };
-
-        uint64_t effect_id{ 0 };
-        bool has_effect_id{ false };
-
-        // Factory helpers
-        static constexpr EventPred Kind(EventKind k) {
-            EventPred p; p.kind = k; p.has_kind = true; return p;
-        }
-        template <size_t N>
-        static constexpr EventPred Effect(const char(&lit)[N]) {
-            EventPred p; p.effect_name = std::string_view(lit, N - 1); p.has_effect_name = true; return p;
-        }
-        template <size_t N>
-        static constexpr EventPred KindEffect(EventKind k, const char(&lit)[N]) {
-            EventPred p; p.kind = k; p.has_kind = true;
-            p.effect_name = std::string_view(lit, N - 1); p.has_effect_name = true; return p;
-        }
-        static constexpr EventPred EffectId(uint64_t id) {
-            EventPred p; p.effect_id = id; p.has_effect_id = true; return p;
-        }
-
-        // Runtime match
-        bool matches(const CombatLine& L) const;
-    };
-
-    // OR-combination of predicates (small fixed-size array to avoid allocs)
-    struct AnyPred {
-        EventPred items[8];
-        uint8_t   count{ 0 };
-
-        bool matches(const CombatLine& L) const {
-            for (uint8_t i = 0; i < count; i++) if (items[i].matches(L)) return true;
-            return false;
-        }
-    };
-
-    inline bool operator==(const EventPred& p, const CombatLine& L) { return p.matches(L); }
-    inline bool operator==(const CombatLine& L, const EventPred& p) { return p.matches(L); }
-
-    inline AnyPred operator|(const EventPred& a, const EventPred& b) {
-        AnyPred ap; ap.items[0] = a; ap.items[1] = b; ap.count = 2; return ap;
-    }
-    inline AnyPred operator|(AnyPred ap, const EventPred& b) {
-        if (ap.count < 8) ap.items[ap.count++] = b;
-        return ap;
-    }
-    inline bool operator==(const AnyPred& ap, const CombatLine& L) { return ap.matches(L); }
-    inline bool operator==(const CombatLine& L, const AnyPred& ap) { return ap.matches(L); }
-
-    // Convenience tokens
-    namespace Evt {
-        // Kinds
-        inline constexpr EventPred ApplyEffect = EventPred::Kind(EventKind::ApplyEffect);
-        inline constexpr EventPred RemoveEffect = EventPred::Kind(EventKind::RemoveEffect);
-        inline constexpr EventPred Ev = EventPred::Kind(EventKind::Event);
-        inline constexpr EventPred Spend = EventPred::Kind(EventKind::Spend);
-        inline constexpr EventPred Restore = EventPred::Kind(EventKind::Restore);
-        inline constexpr EventPred ModifyCharges = EventPred::Kind(EventKind::ModifyCharges);
-        inline constexpr EventPred AreaEntered = EventPred::Kind(EventKind::AreaEntered);
-        inline constexpr EventPred DisciplineChanged = EventPred::Kind(EventKind::DisciplineChanged);
-
-        // Common effect names (change/add more as needed)
-        inline constexpr EventPred Damage = EventPred::Effect("Damage");
-        inline constexpr EventPred Heal = EventPred::Effect("Heal");
-        inline constexpr EventPred Taunt = EventPred::Effect("Taunt");
-        inline constexpr EventPred Threat = EventPred::Effect("Threat");
-
-        // Kind + effect combos
-        inline constexpr EventPred EventDamage = EventPred::KindEffect(EventKind::Event, "Damage");
-        inline constexpr EventPred EventHeal = EventPred::KindEffect(EventKind::Event, "Heal");
-    }
-
     // ---------- Ownership helpers (clone & dispose) ----------
     // Intern every string_view from src into arena, write into dst.
     void deep_bind_into(CombatLine& dst, const CombatLine& src, detail_json::StringArena& arena);
@@ -493,7 +448,6 @@ namespace swtor {
     };
 
     // ---------- Small helpers (exposed for convenience) ----------
-    const char* kind_to_cstr(EventKind k);
     std::string flags_to_string(MitigationFlags f);
 
     inline bool parse_named_id(std::string_view text, NamedId& out);
@@ -544,7 +498,6 @@ namespace swtor {
             DisciplineChangedData& out);
 
         // Detect event kind from event type name
-        inline EventKind detect_event_kind(std::string_view event_name);
 
     } // namespace detail
 
@@ -552,17 +505,17 @@ namespace swtor {
     static inline void parse_mitigation_tail(std::string_view rest, ValueField& vf);
     // Helper function to check if a CombatLine is an AreaEntered event
     inline bool is_area_entered(const CombatLine& line) {
-        return line.evt.kind == EventKind::AreaEntered;
+		return line.event == swtor::EventType::AreaEntered;
     }
 
     // Helper function to check if a CombatLine is a DisciplineChanged event
     inline bool is_discipline_changed(const CombatLine& line) {
-        return line.evt.kind == EventKind::DisciplineChanged;
+		return line.event == swtor::EventType::DisciplineChanged;
     }
 
     // Get area name from AreaEntered event (returns empty string if not an AreaEntered event)
     inline std::string_view get_area_name(const CombatLine& line) {
-        if (line.evt.kind == EventKind::AreaEntered) {
+        if (line.event == EventType::AreaEntered) {
             return line.area_entered.area.name;
         }
         return "";
@@ -570,7 +523,7 @@ namespace swtor {
 
     // Get difficulty name from AreaEntered event (returns empty string if not present)
     inline std::string_view get_difficulty_name(const CombatLine& line) {
-        if (line.evt.kind == EventKind::AreaEntered && line.area_entered.has_difficulty) {
+        if (line.event == EventType::AreaEntered && line.area_entered.has_difficulty) {
             return line.area_entered.difficulty.name;
         }
         return "";
@@ -654,27 +607,7 @@ namespace swtor {
         }
     }
 
-    // swtor_parser.h (add after struct EventPred)
-    inline bool EventPred::matches(const CombatLine& L) const {
-        // Match event kind
-        if (has_kind && L.evt.kind != kind) return false;
 
-        // Match effect id
-        if (has_effect_id && L.evt.effect.id != effect_id) return false;
-
-        // Match effect name (exact, case-sensitive; zero-alloc compare)
-        if (has_effect_name) {
-            std::string_view en = L.evt.effect.name;
-            if (en.size() != effect_name.size()) return false;
-            if (en.data() != effect_name.data()) {
-                // Same length but different storage: compare bytes
-                if (std::char_traits<char>::compare(en.data(), effect_name.data(), en.size()) != 0)
-                    return false;
-            }
-        }
-
-        return true;
-    }
 
 
 } // namespace swtor

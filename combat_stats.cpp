@@ -18,58 +18,13 @@ namespace swtor {
     void combat_stats::ingest(const CombatLine& l) {
 
         if (is_tracked_source(l) ) {
-            switch (l.evt.kind_id)
-            {
-			case swtor::Evt::Damage:
 
-				break;
-            default:
-                break;
-            }
+		
 		} else if (is_tracked_target(l)) {
             
             
 		}
-        // Resolve tracked id from name the first time we see it
-        if (!tracked_id_.has_value() && !tracked_name_.empty()) {
-            if (l.source.name == tracked_name_) tracked_id_ = l.source.id;
-            else if (l.target.name == tracked_name_) tracked_id_ = l.target.id;
-        }
-
-        // rotation-ish: count ability events by the tracked source
-        if (is_tracked_source(l) && l.effect.kind == EffectKind::Event && l.ability.id != 0) {
-            rot_.actions++;
-            if (l.time.combat_ms > last_action_ms_) {
-                // crude idle-time estimate (gap between actions)
-                const uint32_t gap = l.time.combat_ms - last_action_ms_;
-                rot_.idle_time_ms += gap;
-                last_action_ms_ = l.time.combat_ms;
-            }
-        }
-
-        // value-bearing events
-        if (l.trailing.has_value) {
-            const ValueField& v = l.trailing.value;
-            if (is_tracked_source(l)) {
-                if (v.school.is_damage()) on_damage_done(l, v);
-                if (v.school.is_heal())   on_heal_done(l, v);
-            }
-            if (is_tracked_target(l)) {
-                if (v.school.is_damage()) on_damage_taken(l, v);
-                if (v.school.is_heal())   on_heal_received(l, v);
-            }
-        }
-
-        // mechanics & effects
-        on_mechanic(l);
-        on_effect_apply_remove(l);
-        on_threat(l);
-
-        // deaths / time-dead (track via target HP hitting 0)
-        if (is_tracked_target(l) && l.target.hp.current == 0 && l.target.hp.max > 0) {
-            taken_.deaths++;
-            // time_dead will be accounted when we next see HP > 0 (left as TODO for precision)
-        }
+        
     }
 
     bool combat_stats::is_tracked_source(const CombatLine& l) const {
@@ -86,117 +41,117 @@ namespace swtor {
     // ---------- event handlers ----------
 
     void combat_stats::on_damage_done(const CombatLine& l, const ValueField& v) {
-        dmg_.total += v.amount;
-        dmg_.largest_hit = std::max(dmg_.largest_hit, static_cast<int64_t>(v.amount));
-        if (v.crit) ++dmg_.crit_rate; // temporarily count crits; normalized in get_damage()
-        if (v.mitigation.shield) ++dmg_.shielded_pct;
+        //dmg_.total += v.amount;
+        //dmg_.largest_hit = std::max(dmg_.largest_hit, static_cast<int64_t>(v.amount));
+        //if (v.crit) ++dmg_.crit_rate; // temporarily count crits; normalized in get_damage()
+        //if (v.mitigation.shield) ++dmg_.shielded_pct;
 
-        auto& t = dmg_by_ability_[l.ability];
-        t.total += v.amount;
-        t.hits++;
-        t.crits += v.crit ? 1u : 0u;
-        t.largest = std::max(t.largest, static_cast<int64_t>(v.amount));
-        t.shielded_flags += v.mitigation.shield ? 1u : 0u;
+        //auto& t = dmg_by_ability_[l.ability];
+        //t.total += v.amount;
+        //t.hits++;
+        //t.crits += v.crit ? 1u : 0u;
+        //t.largest = std::max(t.largest, static_cast<int64_t>(v.amount));
+        //t.shielded_flags += v.mitigation.shield ? 1u : 0u;
 
-        dmg_series_.push_back({ l.time.combat_ms, static_cast<int64_t>(v.amount) });
+        //dmg_series_.push_back({ l.time.combat_ms, static_cast<int64_t>(v.amount) });
     }
 
     void combat_stats::on_heal_done(const CombatLine& l, const ValueField& v) {
-        heal_.total += v.amount;
-        // effective healing using target HP delta if provided
-        if (l.target.hp.max > 0) {
-            const int64_t missing = static_cast<int64_t>(l.target.hp.max) - static_cast<int64_t>(l.target.hp.current);
-            const int64_t effective = std::min<int64_t>(missing, v.amount);
-            heal_.effective += std::max<int64_t>(0, effective);
-        }
+        //heal_.total += v.amount;
+        //// effective healing using target HP delta if provided
+        //if (l.target.hp.max > 0) {
+        //    const int64_t missing = static_cast<int64_t>(l.target.hp.max) - static_cast<int64_t>(l.target.hp.current);
+        //    const int64_t effective = std::min<int64_t>(missing, v.amount);
+        //    heal_.effective += std::max<int64_t>(0, effective);
+        //}
 
-        if (v.crit) ++heal_.crit_rate;
+        //if (v.crit) ++heal_.crit_rate;
 
-        auto& t = heal_by_ability_[l.ability];
-        t.total += v.amount;
-        t.hits++;
-        t.crits += v.crit ? 1u : 0u;
-        t.largest = std::max(t.largest, static_cast<int64_t>(v.amount));
+        //auto& t = heal_by_ability_[l.ability];
+        //t.total += v.amount;
+        //t.hits++;
+        //t.crits += v.crit ? 1u : 0u;
+        //t.largest = std::max(t.largest, static_cast<int64_t>(v.amount));
 
-        heal_series_.push_back({ l.time.combat_ms, static_cast<int64_t>(v.amount) });
+        //heal_series_.push_back({ l.time.combat_ms, static_cast<int64_t>(v.amount) });
     }
 
     void combat_stats::on_damage_taken(const CombatLine& l, const ValueField& v) {
-        taken_.total_taken += v.amount;
+        //taken_.total_taken += v.amount;
 
-        auto& t = taken_by_ability_[l.ability];
-        t.total += v.amount;
-        t.hits++;
-        t.crits += v.crit ? 1u : 0u;
-        t.largest = std::max(t.largest, static_cast<int64_t>(v.amount));
+        //auto& t = taken_by_ability_[l.ability];
+        //t.total += v.amount;
+        //t.hits++;
+        //t.crits += v.crit ? 1u : 0u;
+        //t.largest = std::max(t.largest, static_cast<int64_t>(v.amount));
 
-        taken_.defended += (l.trailing.value.mitigation.deflect || l.trailing.value.mitigation.parry || l.trailing.value.mitigation.dodge) ? 1u : 0u;
-        taken_.shielded += l.trailing.value.mitigation.shield ? 1u : 0u;
-        taken_.resisted += l.trailing.value.mitigation.resist ? 1u : 0u;
-        taken_.missed += l.trailing.value.mitigation.miss ? 1u : 0u;
-        taken_.immune += l.trailing.value.mitigation.immune ? 1u : 0u;
+        //taken_.defended += (l.trailing.value.mitigation.deflect || l.trailing.value.mitigation.parry || l.trailing.value.mitigation.dodge) ? 1u : 0u;
+        //taken_.shielded += l.trailing.value.mitigation.shield ? 1u : 0u;
+        //taken_.resisted += l.trailing.value.mitigation.resist ? 1u : 0u;
+        //taken_.missed += l.trailing.value.mitigation.miss ? 1u : 0u;
+        //taken_.immune += l.trailing.value.mitigation.immune ? 1u : 0u;
 
-        taken_by_source_[l.source.name_id] += v.amount;
+        //taken_by_source_[l.source.name_id] += v.amount;
     }
 
     void combat_stats::on_heal_received(const CombatLine& l, const ValueField& v) {
-        healing_received_by_source_[l.source.name_id] += v.amount;
+        ///healing_received_by_source_[l.source.name_id] += v.amount;
     }
 
     void combat_stats::on_effect_apply_remove(const CombatLine& l) {
-        auto upd = [&](auto& map, const NamedId& effect, bool is_apply, int stacks) {
-            auto& st = map[effect];
-            if (is_apply) {
-                if (!st.active) { st.active = true; st.active_since_ms = l.time.combat_ms; }
-                st.curr_stacks = stacks > 0 ? stacks : std::max(st.curr_stacks, 1);
-                st.max_stacks = std::max(st.max_stacks, st.curr_stacks);
-            }
-            else {
-                if (st.active) {
-                    st.total_active_ms += (l.time.combat_ms - st.active_since_ms);
-                    st.active = false; st.curr_stacks = 0;
-                }
-            }
-            };
+        //auto upd = [&](auto& map, const NamedId& effect, bool is_apply, int stacks) {
+        //    auto& st = map[effect];
+        //    if (is_apply) {
+        //        if (!st.active) { st.active = true; st.active_since_ms = l.time.combat_ms; }
+        //        st.curr_stacks = stacks > 0 ? stacks : std::max(st.curr_stacks, 1);
+        //        st.max_stacks = std::max(st.max_stacks, st.curr_stacks);
+        //    }
+        //    else {
+        //        if (st.active) {
+        //            st.total_active_ms += (l.time.combat_ms - st.active_since_ms);
+        //            st.active = false; st.curr_stacks = 0;
+        //        }
+        //    }
+        //    };
 
-        switch (l.effect.kind) {
-        case EffectKind::ApplyEffect:
-            if (is_tracked_target(l)) upd(self_buffs_, l.effect.effect, true, l.trailing.has_charges ? static_cast<int>(l.trailing.charges) : 0);
-            if (is_tracked_source(l)) upd(target_debuffs_, l.effect.effect, true, l.trailing.has_charges ? static_cast<int>(l.trailing.charges) : 0);
-            break;
-        case EffectKind::RemoveEffect:
-            if (is_tracked_target(l)) upd(self_buffs_, l.effect.effect, false, 0);
-            if (is_tracked_source(l)) upd(target_debuffs_, l.effect.effect, false, 0);
-            break;
-        default: break;
-        }
+        //switch (l.effect.kind) {
+        //case EffectKind::ApplyEffect:
+        //    if (is_tracked_target(l)) upd(self_buffs_, l.effect.effect, true, l.trailing.has_charges ? static_cast<int>(l.trailing.charges) : 0);
+        //    if (is_tracked_source(l)) upd(target_debuffs_, l.effect.effect, true, l.trailing.has_charges ? static_cast<int>(l.trailing.charges) : 0);
+        //    break;
+        //case EffectKind::RemoveEffect:
+        //    if (is_tracked_target(l)) upd(self_buffs_, l.effect.effect, false, 0);
+        //    if (is_tracked_source(l)) upd(target_debuffs_, l.effect.effect, false, 0);
+        //    break;
+        //default: break;
+        //}
     }
 
     void combat_stats::on_mechanic(const CombatLine& l) {
-        if (!is_tracked_source(l) && !is_tracked_target(l)) return;
+        //if (!is_tracked_source(l) && !is_tracked_target(l)) return;
 
-        if (l.effect.kind == EffectKind::Event) {
-            // Cheap heuristic via ability names/ids your parser knows to mark as mechanics
-            if (l.ability.is_interrupt()) ++mech_.interrupts;
-            if (l.ability.is_cleanse()) ++mech_.cleanses;
-            if (l.ability.is_battle_rez()) ++mech_.combat_res;
-            if (l.ability.is_guard_swap()) ++mech_.guards_swapped;
-        }
+        //if (l.effect.kind == EffectKind::Event) {
+        //    // Cheap heuristic via ability names/ids your parser knows to mark as mechanics
+        //    if (l.ability.is_interrupt()) ++mech_.interrupts;
+        //    if (l.ability.is_cleanse()) ++mech_.cleanses;
+        //    if (l.ability.is_battle_rez()) ++mech_.combat_res;
+        //    if (l.ability.is_guard_swap()) ++mech_.guards_swapped;
+        //}
     }
 
     void combat_stats::on_threat(const CombatLine& l) {
-        if (!l.trailing.has_threat) return;
-        threat_.available = true;
-        if (is_tracked_source(l)) {
-            threat_.total_threat += l.trailing.threat;
-            if (l.ability.is_taunt()) {
-                ++threat_.taunts;
-                // Post-taunt normalization detection is parser-specific; here we count all as successful unless resisted
-                if (!l.trailing.value.mitigation.resist && !l.trailing.value.mitigation.miss) {
-                    ++threat_.successful_taunts;
-                }
-            }
-        }
+        //if (!l.trailing.has_threat) return;
+        //threat_.available = true;
+        //if (is_tracked_source(l)) {
+        //    threat_.total_threat += l.trailing.threat;
+        //    if (l.ability.is_taunt()) {
+        //        ++threat_.taunts;
+        //        // Post-taunt normalization detection is parser-specific; here we count all as successful unless resisted
+        //        if (!l.trailing.value.mitigation.resist && !l.trailing.value.mitigation.miss) {
+        //            ++threat_.successful_taunts;
+        //        }
+        //    }
+        //}
     }
 
     // ---------- getters ----------
@@ -391,40 +346,6 @@ namespace swtor {
     }
 
     // ---------- burst windows ----------
-
-    static std::optional<stat_keeper::BurstWindow>
-        peak_window_impl(const std::deque<combat_stats::EventPoint>& series, uint32_t window_ms) {
-        if (series.empty()) return std::nullopt;
-        size_t i = 0, j = 0;
-        int64_t sum = 0;
-        int64_t best = 0;
-        const uint32_t start_t = series.front().t;
-        const uint32_t end_t = series.back().t;
-
-        while (i < series.size()) {
-            const uint32_t win_start = series[i].t;
-            const uint32_t win_end = win_start + window_ms;
-
-            while (j < series.size() && series[j].t <= win_end) { sum += series[j].v; ++j; }
-            best = std::max(best, sum);
-
-            // slide: remove i-th point and advance i
-            sum -= series[i].v; ++i;
-        }
-        if (window_ms == 0) return std::nullopt;
-        double peak = static_cast<double>(best) / (window_ms / 1000.0);
-        return stat_keeper::BurstWindow{ window_ms, peak };
-    }
-
-    std::optional<stat_keeper::BurstWindow>
-        combat_stats::peak_dps_window(uint32_t window_ms) const {
-        return peak_window_impl(dmg_series_, window_ms);
-    }
-    std::optional<stat_keeper::BurstWindow>
-        combat_stats::peak_hps_window(uint32_t window_ms) const {
-        return peak_window_impl(heal_series_, window_ms);
-    }
-
     // ---------- export ----------
 
     std::string combat_stats::to_json_summary() const {
