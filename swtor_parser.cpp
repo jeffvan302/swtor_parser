@@ -95,6 +95,10 @@ namespace swtor {
                 return false;
             }
 
+            if (out.has_difficulty) {
+				out.difficulty_value = swtor::deduce_area_difficulty(out.difficulty.id);
+            }
+
             if (!value_text.empty()) out.raw_value.assign(value_text.data(), value_text.size());
             return true;
         }
@@ -303,6 +307,18 @@ namespace swtor {
     // ===================== sub-parsers used by the rebuilt parser =====================
 
     // [HH:MM:SS.mmm]
+    static inline bool parse_timestamp_hhmmssmmm_struct(std::string_view br, TimeStamp& t) {
+        auto core = strip_one(br, '[', ']');
+        auto [h, rest1] = split_once(core, ':');
+        auto [m, rest2] = split_once(rest1, ':');
+        auto [s, ms] = split_once(rest2, '.');
+        if (!fast_to_u32(h, t.h) || !fast_to_u32(m, t.m) || !fast_to_u32(s, t.s) || !fast_to_u32(ms, t.ms))
+            return false;
+        t.update_combat_ms();
+        return true;
+    }
+
+    // [HH:MM:SS.mmm]
     static inline bool parse_timestamp_hhmmssmmm(std::string_view br, uint32_t& ms_out) {
         auto core = strip_one(br, '[', ']');
         auto [h, rest1] = split_once(core, ':');
@@ -401,7 +417,8 @@ namespace swtor {
             out.owner = { std::string(owner_name), owner_id, true };
             out.name.assign(comp_name.data(), comp_name.size());
             out.companion_name = out.name;
-            out.id.kind = EntityKind::NpcOrObject; out.id.hi = staticId; out.id.lo = instId;
+            out.type_id = staticId; 
+            out.id= instId;
 
             if (!parse_position(parts[1], out.pos)) return false;
             if (!parse_health(parts[2], out.hp))    return false;
@@ -415,7 +432,8 @@ namespace swtor {
             if (looks) {
                 out.is_player = true; out.is_companion = false; out.owner = {};
                 out.name.assign(pname.data(), pname.size()); out.companion_name.clear();
-                out.id.kind = EntityKind::Player; out.id.hi = pid; out.id.lo = 0;
+                out.type_id = 0;
+                out.id = pid;
                 if (!parse_position(parts[1], out.pos)) return false;
                 if (!parse_health(parts[2], out.hp))    return false;
                 return true;
@@ -440,7 +458,7 @@ namespace swtor {
             else {
                 out.name.assign(disp.data(), disp.size());
             }
-            out.id.kind = EntityKind::NpcOrObject; out.id.hi = staticId; out.id.lo = instId;
+            out.type_id = staticId; out.id = instId;
 
             if (!parse_position(parts[1], out.pos)) return false;
             if (!parse_health(parts[2], out.hp))    return false;
@@ -730,7 +748,7 @@ namespace swtor {
         // [HH:MM:SS.mmm]
         auto tsbr = next_bracket(line, cur);            // returns "[..]"
         if (tsbr.empty()) return ParseStatus::Malformed;
-        if (!parse_timestamp_hhmmssmmm(tsbr, out.t.combat_ms))   // fast, alloc-free
+        if (!parse_timestamp_hhmmssmmm_struct(tsbr, out.t))   // fast, alloc-free
             return ParseStatus::Malformed; // :contentReference[oaicite:0]{index=0}
 
         // [source]

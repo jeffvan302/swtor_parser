@@ -125,13 +125,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="combat_state.cpp" />
+    <ClCompile Include="combat_stats.cpp" />
     <ClCompile Include="example_swtor_integration.cpp" />
     <ClCompile Include="ntp_timekeeper_swtor.cpp" />
     <ClCompile Include="swtor_parser.cpp" />
     <ClCompile Include="time_cruncher_swtor.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="combat_state.h" />
     <ClInclude Include="combat_stats.h" />
+    <ClInclude Include="memory_helper.h" />
     <ClInclude Include="ntp_timekeeper_swtor.h" />
     <ClInclude Include="stat_keeper.h" />
     <ClInclude Include="swtor_parser.h" />

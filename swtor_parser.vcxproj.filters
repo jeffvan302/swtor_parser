@@ -30,6 +30,9 @@
     <ClCompile Include="combat_stats.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="combat_state.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="swtor_parser.h">
@@ -45,6 +48,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="combat_stats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="combat_state.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="memory_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

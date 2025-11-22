@@ -5,6 +5,8 @@
 #include <chrono>
 #include <cstdint>
 
+
+
 namespace swtor {
 
 /**
@@ -20,7 +22,7 @@ namespace swtor {
  * 
  * The class maintains state across multiple calls to handle streaming log data.
  */
-class TimeCruncher {
+class TimeCruncher: parse_plugin {
 public:
     /**
      * @brief Constructor
@@ -49,6 +51,10 @@ public:
      */
     size_t processLines(std::vector<CombatLine>& lines);
 
+	void ingest(CombatLine& line) override;
+    
+    std::string name() const override;
+
     /**
      * @brief Process a single combat line
      * @param line CombatLine to process
@@ -65,7 +71,7 @@ public:
      * Call this when starting to process a new log file or when you want
      * to reset the date tracking state.
      */
-    void reset();
+    void reset() override;
 
     /**
      * @brief Get the current base date being used
@@ -99,44 +105,49 @@ private:
      */
     bool isAreaEntered(const CombatLine& line) const;
 
+    bool set_Base_Date(const CombatLine& line);
+
     /**
      * @brief Initialize the base date from the first AreaEntered or current time
      * @param line CombatLine to use for initialization
      */
     void initializeBaseDate(const CombatLine& line);
 
+
+    inline int64_t from_time_point(const std::chrono::system_clock::time_point& tp) const {
+        using namespace std::chrono;
+        // Convert time_point to refined_epoch_ms
+        return duration_cast<milliseconds>(tp.time_since_epoch()).count();
+    }
+
+    inline std::chrono::system_clock::time_point to_time_point(int64_t ms_since_epoch) const {
+        using namespace std::chrono;
+        // Convert refined_epoch_ms to time_point
+        return system_clock::time_point(milliseconds(ms_since_epoch));
+    }
+
+    inline int64_t calculateEpochMs(uint32_t combat_ms) const {
+        return base_date_epoch_ms_ + static_cast<int64_t>(combat_ms);
+	}
+
     /**
      * @brief Update base date when detecting midnight rollover
      */
     void handleMidnightRollover();
 
-    /**
-     * @brief Calculate refined epoch time for a log entry
-     * @param combat_ms The combat_ms from the TimeStamp
-     * @return Epoch time in milliseconds
-     */
-    int64_t calculateEpochMs(uint32_t combat_ms);
-
-    /**
-     * @brief Adjust for late arrival of log entries
-     * @param calculated_time The initially calculated time
-     * @return Adjusted time accounting for late arrival
-     */
-    int64_t adjustForLateArrival(int64_t calculated_time);
-
-    /**
-     * @brief Convert combat_ms to epoch ms using current base date
-     * @param combat_ms Milliseconds since midnight
-     * @return Epoch milliseconds
-     */
-    int64_t combatMsToEpochMs(uint32_t combat_ms) const;
+    
+    inline int64_t CloseToMidnightThreshold() const {
+        return MS_PER_DAY - MIDNIGHT_ROLLOVER_THRESHOLD_MS;
+	}
 
     std::shared_ptr<NTPTimeKeeper> ntp_keeper_;
     bool enable_late_arrival_adjustment_;
     
     // State tracking
     bool initialized_;
+    bool midnight_close_;
     std::chrono::system_clock::time_point base_date_;
+	int64_t base_date_epoch_ms_;
     int current_day_offset_;  // Days added due to midnight rollovers
     uint32_t last_processed_combat_ms_;
     int64_t last_processed_epoch_ms_;
@@ -147,50 +158,7 @@ private:
     // Configuration
     static constexpr int64_t MIDNIGHT_ROLLOVER_THRESHOLD_MS = 60000; // 1 minute
     static constexpr int64_t MAX_LATE_ARRIVAL_MS = 5000; // 5 seconds max
-    static constexpr uint32_t MS_PER_DAY = 86400000; // 24 * 60 * 60 * 1000
-};
-
-/**
- * @brief Utility class for working with combined date+time
- */
-class CombinedTime {
-public:
-    /**
-     * @brief Create from epoch milliseconds
-     */
-    static CombinedTime fromEpochMs(int64_t epoch_ms);
-
-    /**
-     * @brief Create from combat_ms and a base date
-     */
-    static CombinedTime fromCombatMs(
-        uint32_t combat_ms,
-        const std::chrono::system_clock::time_point& base_date
-    );
-
-    /**
-     * @brief Get as epoch milliseconds
-     */
-    int64_t toEpochMs() const;
-
-    /**
-     * @brief Get as system_clock time_point
-     */
-    std::chrono::system_clock::time_point toTimePoint() const;
-
-    /**
-     * @brief Get as ISO 8601 string
-     */
-    std::string toISOString() const;
-
-    /**
-     * @brief Get as formatted string
-     */
-    std::string toString(const std::string& format = "%Y-%m-%d %H:%M:%S") const;
-
-private:
-    CombinedTime(int64_t epoch_ms);
-    int64_t epoch_ms_;
+    static constexpr int64_t MS_PER_DAY = 86400000; // 24 * 60 * 60 * 1000
 };
 
 } // namespace swtor

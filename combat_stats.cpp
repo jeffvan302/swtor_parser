@@ -8,7 +8,7 @@ namespace swtor {
 
     // ---------- identity ----------
 
-    void combat_stats::set_tracked_entity(const EntityId& id) {
+    void combat_stats::set_tracked_entity(const uint64_t id) {
         tracked_id_ = id;
     }
 
@@ -28,12 +28,12 @@ namespace swtor {
     }
 
     bool combat_stats::is_tracked_source(const CombatLine& l) const {
-        if (tracked_id_) return l.source.id == *tracked_id_;
+        if (tracked_id_) return l.source.id == tracked_id_;
         if (!tracked_name_.empty()) return l.source.name == tracked_name_;
         return false;
     }
     bool combat_stats::is_tracked_target(const CombatLine& l) const {
-        if (tracked_id_) return l.target.id == *tracked_id_;
+        if (tracked_id_) return l.target.id == tracked_id_;
         if (!tracked_name_.empty()) return l.target.name == tracked_name_;
         return false;
     }
@@ -389,7 +389,7 @@ namespace swtor {
     // ---------- reset ----------
 
     void combat_stats::reset() {
-        tracked_id_.reset();
+        tracked_id_ = 0;
         tracked_name_.clear();
         encounter_name_.clear();
         start_ms_ = end_ms_ = 0;

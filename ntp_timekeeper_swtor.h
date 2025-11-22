@@ -63,15 +63,81 @@ public:
     // Get the offset between local time and NTP time in milliseconds
     int64_t getOffsetMs() const;
 
+    int64_t utc_offset_to_local_ms();
+
     // Check if synchronization has been performed successfully
     bool isSynchronized() const;
 
+    void set_local_offset(int64_t val);
+    int64_t get_local_offset() const;
+
 	// Get the current local time adjusted by NTP offset
-    std::chrono::local_time getLocalTime() const;
+    ///std::chrono::local_time getLocalTime() const;
     
-    // Get the current NTP time
+    /// <summary>
+    /// Returns the midnight time of the input
+    /// </summary>
+    /// <param name="input">date value</param>
+    /// <returns>zero hour of the input date</returns>
+    std::chrono::system_clock::time_point getZeroHour(std::chrono::system_clock::time_point input);
+
+    /// <summary>
+    /// Returns the local time adjusted for time zone.  Dangerous since it already includes time zone in an assumed system time.  Makes future calculations faster.
+    /// </summary>
+    /// <returns></returns>
+    std::chrono::system_clock::time_point getLocalTime() const;
+
+    /// <summary>
+    /// Adjust time by adding ms to input time.
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="ms"></param>
+    /// <returns></returns>
+    std::chrono::system_clock::time_point adjust_time(std::chrono::system_clock::time_point input, int64_t ms);
+
+    /// <summary>
+    /// Adjust time by adding values to input time.
+    /// </summary>
+    /// <returns></returns>
+    std::chrono::system_clock::time_point adjust_time(std::chrono::system_clock::time_point input, int64_t days, int64_t hours, int64_t min, int64_t sec, int64_t ms);
+
+    /// <summary>
+    /// Returns the NTP Time in GMT time.
+    /// </summary>
+    /// <returns></returns>
     std::chrono::system_clock::time_point getNTPTime() const;
     int64_t getNTPTimeMs() const;
+
+
+    /// <summary>
+	/// Get the current local time in refined_epoch_ms
+    /// </summary>
+    /// <returns></returns>
+    inline int64_t get_LocalTime_in_epoch_ms() const {
+		return time_point_to_epoch_ms(getLocalTime());
+	}
+
+    /// <summary>
+	/// Convert time_point to refined_epoch_ms
+    /// </summary>
+    /// <param name="tp"></param>
+    /// <returns></returns>
+    inline int64_t time_point_to_epoch_ms(const std::chrono::system_clock::time_point& tp) const {
+        using namespace std::chrono;
+        // Convert time_point to refined_epoch_ms
+        return duration_cast<milliseconds>(tp.time_since_epoch()).count();
+    }
+
+    /// <summary>
+	/// Convert refined_epoch_ms to time_point
+    /// </summary>
+    /// <param name="ms_since_epoch"></param>
+    /// <returns></returns>
+    inline std::chrono::system_clock::time_point epoch_ms_to_time_point(int64_t ms_since_epoch) const {
+        using namespace std::chrono;
+        // Convert refined_epoch_ms to time_point
+        return system_clock::time_point(milliseconds(ms_since_epoch));
+    }
 
     // Get the last synchronization result
     NTPResult getLastResult() const;
@@ -103,8 +169,10 @@ private:
     int timeout_ms_;
     
     mutable std::mutex mutex_;
+    mutable std::mutex mutex2_;
     bool synchronized_;
     int64_t offset_ms_;
+    int64_t zone_offset_ms_;
     NTPResult last_result_;
     
     // Windows-specific: track if WSA is initialized

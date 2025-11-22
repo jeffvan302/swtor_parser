@@ -3,8 +3,16 @@
 #include <string>
 #include <string_view>
 #include <cstdlib>
+#include <sstream>
+#include <iomanip>
+#include <chrono>
+#include <iostream>
+#include <format>
+#include <locale>
 
 namespace swtor {
+
+
 
 
     // Add the two special “by-name only” kinds as numeric IDs, observed in logs/spec:
@@ -41,6 +49,42 @@ namespace swtor {
         SithWarrior = 16141153526575710780,
         SithInquisitor = 16141122432429723681
     };
+
+    enum class AreaDifficulty : uint64_t {
+        Unknown = 0,
+        Solo = 1,
+		Story_4 = 836045448953656, //
+		Veteran_4 = 836045448953657, // Known
+		Master_4 = 836045448953659,  // 
+		Story_8 = 836045448953651,  // Known
+		Veteran_8 = 836045448953652, // Known
+        Master_8 = 836045448953655,  // Known
+		Story_16 = 836045448953653, // Known
+        Veteran_16 = 836045448953654, // Known
+		Master_16 = 836045448953658
+    };
+
+    inline AreaDifficulty deduce_area_difficulty(uint64_t difficult_id) {
+		AreaDifficulty result = AreaDifficulty::Solo;
+        return result;
+    }
+
+    inline int number_of_players(AreaDifficulty diff) {
+        switch (diff) {
+            case AreaDifficulty::Solo:
+                return 1;
+            case AreaDifficulty::Story_8:
+            case AreaDifficulty::Veteran_8:
+            case AreaDifficulty::Master_8:
+                return 8;
+            case AreaDifficulty::Story_16:
+            case AreaDifficulty::Veteran_16:
+            case AreaDifficulty::Master_16:
+                return 16;
+            default:
+                return 0;
+        }
+	}
 
     enum class EventType: uint64_t {
         Unknown = 0,
@@ -181,13 +225,6 @@ namespace swtor {
     // ---------- Identity & core data ----------
     enum class EntityKind : uint8_t { Unknown = 0, Player, NpcOrObject };
 
-    struct EntityId {
-        uint64_t hi{ 0 }, lo{ 0 };
-        EntityKind kind{ EntityKind::Unknown };
-        bool operator==(const EntityId& o) const { return hi == o.hi && lo == o.lo && kind == o.kind; }
-        bool valid() const { return kind != EntityKind::Unknown && (hi || lo); }
-    };
-
     struct Health { int64_t current{ 0 }; int64_t max{ 0 }; };
     struct Position 
     { float x{ 0 }, y{ 0 }, z{ 0 }, facing{ 0 }; 
@@ -204,7 +241,8 @@ namespace swtor {
         std::string      display{};
         std::string      name{};
         std::string      companion_name{};
-        EntityId id{};
+        uint64_t id{};
+        uint64_t type_id{};
         bool is_player{ false };
         bool is_companion{ false };
         bool empty{ false };
@@ -213,6 +251,8 @@ namespace swtor {
         Health   hp{};
         CompanionOwner owner{};
     };
+
+    inline bool operator==(const Entity& p1, const Entity& p2) { return p1.id == p2.id; }
 
     struct NamedId {
         std::string      name{};
@@ -263,8 +303,64 @@ namespace swtor {
 
 
     struct TimeStamp {
-        uint32_t combat_ms{ 0 };          // HH:MM:SS.mmm → ms since midnight
+        /// <summary>
+        /// HH:MM:SS.mmm → ms since midnight
+        /// </summary>
+        uint32_t combat_ms{ 0 };
         int64_t  refined_epoch_ms{ -1 };  // fill later with NTP/refinement
+        /// <summary>
+        /// hour
+        /// </summary>
+        uint32_t h{ 0 };
+        /// <summary>
+        /// minute
+        /// </summary>
+        uint32_t m{ 0 };
+        /// <summary>
+        /// seconds
+        /// </summary>
+        uint32_t s{ 0 };
+        /// <summary>
+        /// milliseconds
+        /// </summary>
+        uint32_t ms{ 0 };
+        uint32_t year{ 0 };
+        uint32_t month{ 0 };
+        uint32_t day{ 0 };
+
+        inline std::chrono::system_clock::time_point to_time_point() const {
+            using namespace std::chrono;
+            // Convert refined_epoch_ms to time_point
+            return system_clock::time_point(milliseconds(refined_epoch_ms));
+		}
+
+        inline void from_time_point(const std::chrono::system_clock::time_point& tp) {
+            using namespace std::chrono;
+            // Convert time_point to refined_epoch_ms
+            refined_epoch_ms = duration_cast<milliseconds>(tp.time_since_epoch()).count();
+		}
+
+        /// <summary>
+        /// Updates the combat_ms value from the h, m, s, and ms values
+        /// </summary>
+        inline void update_combat_ms() {
+            combat_ms = uint32_t(((h * 60 + m) * 60 + s) * 1000 + ms);
+        }
+
+        inline std::string print() const {
+            std::ostringstream oss;
+            if (year > 0) {
+                oss << std::setw(4) << std::setfill('0') << year;
+                oss << "-" << std::setw(2) << std::setfill('0') << month;
+                oss << "-" << std::setw(2) << std::setfill('0') << day;
+                oss << " ";
+            }
+            oss << std::setw(2) << std::setfill('0') << h;
+            oss << ":" << std::setw(2) << std::setfill('0') << m;
+            oss << ":" << std::setw(2) << std::setfill('0') << s;
+            oss << "." << std::setw(3) << std::setfill('0') << ms;
+            return oss.str();
+        }
     };
 
     // ---------- Event-specific data structures ----------
@@ -273,6 +369,7 @@ namespace swtor {
     struct AreaEnteredData {
         NamedId area{};                    // Area name and ID (e.g., "Nar Shaddaa")
         NamedId difficulty{};              // Optional difficulty (e.g., "8 Player Master")
+		AreaDifficulty difficulty_value{ AreaDifficulty::Unknown };
         std::string version{};             // Version tag (e.g., "v7.0.0b")
         std::string raw_value{};           // Raw value field (e.g., "he3001")
         bool has_difficulty{ false };
@@ -342,11 +439,29 @@ namespace swtor {
     enum class ParseStatus : uint8_t { Ok = 0, Malformed };
 
     struct CombatLine {
+        /// <summary>
+        /// TimeStamp of the line event
+        /// </summary>
         TimeStamp t{};
+        /// <summary>
+		/// Entity that caused the event
+        /// </summary>
         Entity source{};
+        /// <summary>
+		/// Entity that is the target of the event
+        /// </summary>
         Entity target{};
+        /// <summary>
+		/// Ability or effect associated with the event
+        /// </summary>
         NamedId   ability{};
+        /// <summary>
+		/// Event Type that occurred
+        /// </summary>
         EventEffect event{};
+        /// <summary>
+		/// Detailed trailing data (value, mitigation, threat, charges) and values
+        /// </summary>
         Trailing tail{};
 
         // Event-specific data (populated based on evt.kind)
@@ -357,7 +472,7 @@ namespace swtor {
 
 
     inline bool operator==(const CombatLine& p, const EventType& et) { return p.event.matches(et); }
-
+    inline bool operator==(const CombatLine& p, const EventActionType& eat) { return p.event.matches(eat); }
 
     // Parse a single SWTOR combat log line into CombatLine (allocation-free).
     ParseStatus parse_combat_line(std::string_view line, CombatLine& out);
@@ -608,6 +723,53 @@ namespace swtor {
     }
 
 
+    struct parse_plugin {
+        virtual ~parse_plugin() = default;
+
+		/// <summary>
+		/// Returns the name of the plugin.
+		/// </summary>
+		/// <returns></returns>
+		virtual std::string name() const = 0;
+
+		/// <summary>
+		/// Unique identifier for the plugin and is assigned during registration.
+		/// </summary>
+		uint16_t id{ 0 }; // Unique plugin ID.
+
+		/// <summary>
+		/// Priority of the plugin (lower values indicate higher priority).  Negative values are ignored and are used internally.
+		/// </summary>
+		int priority{ 0 }; // Lower values indicate higher priority.
+
+		/// <summary>
+		/// Enabled state of the plugin.  false = disabled, and will not be called during parsing.
+		/// </summary>
+		bool enabled{ true };
+
+        /// <summary>
+		/// Parse lines in the plugin through ingest method.
+        /// </summary>
+        /// <param name="line"></param>
+        virtual void ingest(CombatLine& line) = 0;
+
+        // Clear all state.
+        virtual void reset() = 0;
+    };
+
+
+    class plugin_manager {
+    public:
+        // Register a new plugin.
+        void register_plugin(std::shared_ptr<parse_plugin> plugin);
+        // Process a CombatLine through all enabled plugins.
+        void process_line(CombatLine& line);
+        // Reset all plugins.
+		void reset_plugins();
+
+        private:
+			std::vector<std::shared_ptr<parse_plugin>> plugins_;
+    }
 
 
 } // namespace swtor

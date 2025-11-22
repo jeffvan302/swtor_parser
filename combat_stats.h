@@ -33,7 +33,7 @@ namespace swtor {
         // ---------- lifecycle ----------
         ~combat_stats() override = default;
 
-        void set_tracked_entity(const EntityId& id) override;
+        void set_tracked_entity(const uint64_t id) override;
 
         void ingest(const CombatLine& line) override;
         void reset() override;
@@ -97,7 +97,7 @@ namespace swtor {
         };
 
         // identity & encounter
-        std::optional<EntityId> tracked_id_;
+        uint64_t tracked_id_;
         std::string tracked_name_;
         std::string encounter_name_;
         uint32_t start_ms_{ 0 };

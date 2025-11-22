@@ -22,7 +22,7 @@ namespace swtor {
         virtual ~stat_keeper() = default;
 
         // Choose which player we’re tracking (by id or name).
-        virtual void set_tracked_entity(const EntityId& id) = 0;
+        virtual void set_tracked_entity(const uint64_t id) = 0;
 
         // Feed parsed lines. Implementation may ignore lines unrelated to the tracked player.
         virtual void ingest(const CombatLine& line) = 0;

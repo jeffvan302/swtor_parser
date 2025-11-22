@@ -61,6 +61,9 @@ NTPTimeKeeper::~NTPTimeKeeper() {
 }
 
 bool NTPTimeKeeper::synchronize(bool force) {
+    
+    utc_offset_to_local_ms();
+
     std::lock_guard<std::mutex> lock(mutex_);
     
     if (synchronized_ && !force) {
@@ -93,9 +96,19 @@ bool NTPTimeKeeper::synchronize(bool force) {
     return false;
 }
 
+void NTPTimeKeeper::set_local_offset(int64_t val) {
+    std::lock_guard<std::mutex> lock(mutex2_);
+    zone_offset_ms_ = val;
+}
+
+int64_t NTPTimeKeeper::get_local_offset() const {
+    std::lock_guard<std::mutex> lock(mutex2_);
+    return zone_offset_ms_;
+}
+
 int64_t NTPTimeKeeper::getOffsetMs() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    return offset_ms_;
+    return (offset_ms_);
 }
 
 bool NTPTimeKeeper::isSynchronized() const {
@@ -103,19 +116,56 @@ bool NTPTimeKeeper::isSynchronized() const {
     return synchronized_;
 }
 
-std::chrono::local_time NTPTimeKeeper::getLocalTime() const {
-    auto now = std::chrono::system_clock::now();
-	auto tz = std::chrono::current_zone();
-	auto local_now = tz->to_local(now);
-	std::chrono::local_time<std::chrono::system_clock>
-    int64_t offset = getOffsetMs();
-    std::chrono::local_time<std::chrono::milliseconds> ms_diff{ std::chrono::milliseconds(offset) };
-    return local_now - ms_diff;
+
+
+int64_t NTPTimeKeeper::utc_offset_to_local_ms() 
+{
+    using namespace std::chrono;
+    auto now_sys = std::chrono::floor<std::chrono::milliseconds>(std::chrono::system_clock::now());
+    auto tz = current_zone();
+    auto info = tz->get_info(now_sys);
+    auto total_offset = info.offset + info.save;
+    int64_t val = duration_cast<milliseconds>(total_offset).count();
+    set_local_offset(val);
+    return val;
 }
+
+std::chrono::system_clock::time_point NTPTimeKeeper::getZeroHour(std::chrono::system_clock::time_point input) {
+    using namespace std::chrono;
+    system_clock::time_point results = floor<days>(input);
+    return results;
+}
+
 
 std::chrono::system_clock::time_point NTPTimeKeeper::getNTPTime() const {
     auto now = std::chrono::system_clock::now();
     return convertToNTP(now);
+}
+
+std::chrono::system_clock::time_point NTPTimeKeeper::adjust_time(std::chrono::system_clock::time_point input, int64_t ms) {
+    int64_t offset = ms;
+    auto offset_duration = std::chrono::milliseconds(offset);
+    auto results = input + offset_duration;
+    return results;
+}
+
+std::chrono::system_clock::time_point NTPTimeKeeper::adjust_time(std::chrono::system_clock::time_point input, int64_t days, int64_t hours, int64_t min, int64_t sec, int64_t ms) {
+    int64_t offset = days * 24; // convert to hours
+    offset = (offset + hours) * 60; // convert to min
+    offset = (offset + min) * 60; // convert to sec
+    offset = (offset + sec) * 1000; // convert to millisec
+    offset = offset + ms;
+    auto offset_duration = std::chrono::milliseconds(offset);
+    auto results = input + offset_duration;
+    return results;
+}
+
+std::chrono::system_clock::time_point NTPTimeKeeper::getLocalTime() const {
+    auto now = getNTPTime();
+    int64_t offset = get_local_offset();
+    auto offset_duration = std::chrono::milliseconds(offset);
+    now = now + offset_duration;
+    return (now);
 }
 
 int64_t NTPTimeKeeper::getNTPTimeMs() const {
