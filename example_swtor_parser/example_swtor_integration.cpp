@@ -496,10 +496,13 @@ int run_test(std::string file_name, std::vector<swtor::CombatLine> &parsed_lines
 }
 
 int call_file_processing_v2(std::string file_name, bool do_printout = true, float speed_factor = 0.0f) {
+	std::cout << "--- Reading Log File Lines into Memory ---" << std::endl;
+	SIZE_T ref_mem_size = print_memory_usage(0);
     auto raw_lines = readLogFile(file_name);
+    print_memory_usage(ref_mem_size);
 	swtor::plugin_manager mng = swtor::plugin_manager();
 	std::cout << "Parsing Test File: " << file_name << std::endl;
-    auto t1 = std::chrono::steady_clock::now();
+    
     double last_dps = 0;
     int64_t time_set = mng.get_time_in_ms_epoch();
 	int64_t last_combat_time = 0;
@@ -528,7 +531,19 @@ int call_file_processing_v2(std::string file_name, bool do_printout = true, floa
 	
     std::cout << std::endl;
     int64_t track_time_start = 0;
+	int64_t line_counter = 0;
+	int64_t quater_div = raw_lines.size() / 4;
+	std::cout << "===   Starting Parse Raw Lines  ===" << std::endl;
+    std::cout << "  [" << quater_div << "]" << std::endl;
+    SIZE_T starting_mem_size = print_memory_usage(0);
+    auto t1 = std::chrono::steady_clock::now();
+
     for (const auto& raw_line : raw_lines) {
+        line_counter++;
+        if (do_printout) if (line_counter == quater_div) {
+            print_memory_usage(starting_mem_size);
+			line_counter = 0;
+        }
         mng.process_line(raw_line);
         if (in_combat != mng.is_in_combat()) {
             in_combat = mng.is_in_combat();
@@ -587,7 +602,9 @@ int call_file_processing_v2(std::string file_name, bool do_printout = true, floa
 		}
 	}
     std::cout << std::endl;
+    
     auto t2 = std::chrono::steady_clock::now();
+    print_memory_usage(starting_mem_size);
     const size_t total = raw_lines.size();
     std::cout << "Statistics: " << std::endl;
     std::chrono::duration<double, std::milli> ms = t2 - t1;
