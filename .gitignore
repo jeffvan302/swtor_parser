@@ -1,2 +1,3 @@
-x64/
-swtor_parser/
+obj/
+.vs/
+old_code/

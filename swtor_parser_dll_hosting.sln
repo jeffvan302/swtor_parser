@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "swtor_parser_core", "core\swtor_parser_core.vcxproj", "{B4A916DC-7CC6-4D90-8CEF-05BCE25D32EA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example_damage_tracker_plugin", "example_plugin\example_damage_tracker_plugin.vcxproj", "{9B23C5D4-6E7F-4890-A123-BC45DE678901}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "parser_host", "host_parsing\parser_host.vcxproj", "{8A12B4C3-5D6E-4F78-9012-AB34CD567890}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B4A916DC-7CC6-4D90-8CEF-05BCE25D32EA}.Debug|x64.ActiveCfg = Debug|x64
+		{B4A916DC-7CC6-4D90-8CEF-05BCE25D32EA}.Debug|x64.Build.0 = Debug|x64
+		{B4A916DC-7CC6-4D90-8CEF-05BCE25D32EA}.Release|x64.ActiveCfg = Release|x64
+		{B4A916DC-7CC6-4D90-8CEF-05BCE25D32EA}.Release|x64.Build.0 = Release|x64
+		{9B23C5D4-6E7F-4890-A123-BC45DE678901}.Debug|x64.ActiveCfg = Debug|x64
+		{9B23C5D4-6E7F-4890-A123-BC45DE678901}.Debug|x64.Build.0 = Debug|x64
+		{9B23C5D4-6E7F-4890-A123-BC45DE678901}.Release|x64.ActiveCfg = Release|x64
+		{9B23C5D4-6E7F-4890-A123-BC45DE678901}.Release|x64.Build.0 = Release|x64
+		{8A12B4C3-5D6E-4F78-9012-AB34CD567890}.Debug|x64.ActiveCfg = Debug|x64
+		{8A12B4C3-5D6E-4F78-9012-AB34CD567890}.Debug|x64.Build.0 = Debug|x64
+		{8A12B4C3-5D6E-4F78-9012-AB34CD567890}.Release|x64.ActiveCfg = Release|x64
+		{8A12B4C3-5D6E-4F78-9012-AB34CD567890}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EA569FF3-943F-4221-BBF9-68BBC5446A41}
+	EndGlobalSection
+EndGlobal

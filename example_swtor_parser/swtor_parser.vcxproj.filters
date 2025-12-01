@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="example_swtor_integration.cpp" />
+    <ClCompile Include="../core/combat_state.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="../core/ntp_timekeeper_swtor.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="../core/parse_manager.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="../core/swtor_parser.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="../core/time_cruncher_swtor.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="../core/timing_plugin.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="test_plugin.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="../core/base_classes.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="../core/combat_state.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="../core/memory_helper.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="../core/ntp_timekeeper_swtor.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="../core/parse_manager.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="../core/parse_plugin.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="../core/stat_keeper.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="../core/swtor_parser.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="../core/time_cruncher_swtor.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="../core/timing_plugin.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="test_plugin.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="core">
+      <UniqueIdentifier>{5203bff0-f87a-4dc9-9050-801f1cd6d7ee}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
