@@ -6,8 +6,14 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "swtor_parser_core", "core\swtor_parser_core.vcxproj", "{B4A916DC-7CC6-4D90-8CEF-05BCE25D32EA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example_damage_tracker_plugin", "example_plugin\example_damage_tracker_plugin.vcxproj", "{9B23C5D4-6E7F-4890-A123-BC45DE678901}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B4A916DC-7CC6-4D90-8CEF-05BCE25D32EA} = {B4A916DC-7CC6-4D90-8CEF-05BCE25D32EA}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "parser_host", "host_parsing\parser_host.vcxproj", "{8A12B4C3-5D6E-4F78-9012-AB34CD567890}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9B23C5D4-6E7F-4890-A123-BC45DE678901} = {9B23C5D4-6E7F-4890-A123-BC45DE678901}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
