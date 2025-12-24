@@ -541,6 +541,7 @@ int call_file_processing_v2(std::string file_name, bool do_printout = true, floa
     for (const auto& raw_line : raw_lines) {
         line_counter++;
         if (do_printout) if (line_counter == quater_div) {
+            std::cout << std::endl;
             print_memory_usage(starting_mem_size);
 			line_counter = 0;
         }
@@ -562,6 +563,7 @@ int call_file_processing_v2(std::string file_name, bool do_printout = true, floa
                     if (do_printout) std::cout << mng.get_parse_data().last_line.print();
 				}
                 if (do_printout) std::cout << "=== Exiting Combat ===" << std::endl;
+                if (do_printout) std::cout << mng.get_combat_state().print_state() << std::endl;
             }
 		}
         if (do_printout) {
@@ -643,7 +645,7 @@ int main(int argc, char* argv[]) {
     std::string file_name = "";
 	bool do_printout = true;
     std::string default_file = "combat_sample_dummy_log.txt";
-	float speed_factor = 4.0f;
+	float speed_factor = 10.0f;
     if (argc >= 2) {
         file_name = argv[1];
     }

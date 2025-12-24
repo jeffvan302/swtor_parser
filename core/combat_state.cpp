@@ -32,6 +32,22 @@ namespace swtor {
 
 	}
 
+	EntityState::EntityState(std::shared_ptr<Entity> ent) {
+		Effects.reserve(64);
+		AppliedBy.reserve(64);
+		if (ent) {
+			id = ent->id;
+			entity = ent;
+		}
+	}
+
+	EntityState::EntityState(Entity ent) {
+		Effects.reserve(64);
+		AppliedBy.reserve(64);
+		id = ent.id;
+		entity = ent.get_shared();
+	}
+
 	std::shared_ptr<EntityState> EntityManager::owner(){
 		for(int pos = 0; pos < entities_.size(); pos++) {
 			if( entities_[pos]->owner) {
@@ -44,7 +60,10 @@ namespace swtor {
 	void EntityManager::new_combat_reset(){
 		for (int pos = (entities_.size() - 1); pos >= 0; pos--) {
 			if (!entities_[pos]->is_player() && !entities_[pos]->is_companion()) {
+				auto hold_tmp = entities_[pos];
 				entities_.erase(entities_.begin() + pos);
+				hold_tmp.reset();
+				hold_tmp = nullptr;
 			}
 			else {
 				entities_[pos]->target_owner = nullptr;
@@ -58,7 +77,7 @@ namespace swtor {
 				entities_[pos]->total_absorb_done = 0;
 				entities_[pos]->total_threat = 0;
 				entities_[pos]->total_shielding_done = 0;
-				entities_[pos]->total_defect_done = 0;
+				entities_[pos]->total_deflect_done = 0;
 				entities_[pos]->total_glance_done = 0;
 				entities_[pos]->total_dodge_done = 0;
 				entities_[pos]->total_parry_done = 0;
@@ -112,10 +131,10 @@ namespace swtor {
 				}
 		}
 		if (source != nullptr) {
-			source->entity = line.source;
+			source->entity = line.source.get_shared();
 		}
 		if (target != nullptr) {
-			target->entity = line.target;
+			target->entity = line.target.get_shared();
 		}
 		if (line == EventActionType::Death) {
 			if (target != nullptr) {
@@ -162,7 +181,7 @@ namespace swtor {
 		if (line == EventActionType::TargetSet) {
 			// Currently no state changes needed for energy changes
 			if (source != nullptr && target != nullptr) {
-				source->target = line.target;
+				source->target = line.target.get_shared();
 				source->target_owner = target;
 			}
 		}
@@ -170,7 +189,7 @@ namespace swtor {
 		if (line == EventActionType::TargetCleared) {
 			// Currently no state changes needed for energy changes
 			if (source != nullptr) {
-				source->target = empty_entity_;
+				source->target = nullptr;
 				source->target_owner = nullptr;
 			}
 		}
@@ -184,7 +203,7 @@ namespace swtor {
 					break;
 				case MitigationFlags::Deflect:
 					if (source != nullptr) {
-						source->total_defect_done++;
+						source->total_deflect_done++;
 					}
 					break;
 				case MitigationFlags::Glance:
@@ -347,8 +366,11 @@ namespace swtor {
 			owner_dead_ = false;
 			monitor_combat_state_ = true;
 			combat_revive_line_ = line;
-			if (all_players_dead) {
+			if (all_players_dead && in_combat_) {
+				// Calculated that all players were dead, exit combat now
+				// We missed the catch in all deaths.
 				in_combat_ = false;
+				last_combat_exit_ = last_damage_time_;
 			}
 			all_players_dead = false;
 		}
@@ -373,8 +395,8 @@ namespace swtor {
 				dead_players_.push_back(line.target);
 			}
 		}
-		
 		if (in_combat_ && combat_state_all_players_dead()) {
+			// Everyone is dead, exit combat
 			all_players_dead = true;
 			in_combat_ = false;
 			last_combat_exit_ = line.t.refined_epoch_ms;
@@ -391,11 +413,14 @@ namespace swtor {
 	}
 
 	inline void CombatState::combat_state_parse_exitcombat(const CombatLine& line) {
+		last_combat_exit_ = line.t.refined_epoch_ms;
 		combat_state_reset();
-		in_combat_ = false;
 	}
 
 	inline void CombatState::combat_state_parse_damage(const CombatLine& line) {
+		if ((line.source.is_player || line.target.is_player) && (line != swtor::EventActionType::FallingDamage)) {
+			last_damage_time_ = line.t.refined_epoch_ms; // Save this time incase we are dead and need to know if combat should end
+		}
 		if (in_combat_ && died_in_combat_ && line.source == owner_ && monitor_combat_state_) {
 			int64_t time_diff = line.t.refined_epoch_ms - combat_revive_line_.t.refined_epoch_ms;
 			if (time_diff < SAME_COMBAT_TIME_AFTER_REVIVE) {
@@ -403,7 +428,8 @@ namespace swtor {
 				died_in_combat_ = false;
 			}
 			else {
-				combat_state_reset();
+				combat_state_parse_exitcombat(line);
+				last_combat_exit_ = last_damage_time_;
 			}
 		}
 	}

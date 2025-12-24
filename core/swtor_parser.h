@@ -392,6 +392,10 @@ namespace swtor {
         /// Companion owner information
         /// </summary>
         CompanionOwner owner{};
+
+        std::shared_ptr<Entity> get_shared() const {
+            return std::make_shared<Entity>(*this);  // Copy construct
+        }
     };
 
     /// <summary>
@@ -402,6 +406,21 @@ namespace swtor {
     /// <returns>True if IDs match</returns>
     inline bool operator==(const Entity& p1, const Entity& p2) { return p1.id == p2.id; }
 
+    inline bool operator==(const std::shared_ptr<Entity> p1, const Entity& p2) {
+        if (!p1) return false;
+        return p1->id == p2.id;
+    }
+    inline bool operator==(const Entity& p2, const std::shared_ptr<Entity> p1) {
+        if (!p1) return false;
+        return p1->id == p2.id;
+    }
+
+    inline bool operator==(const std::shared_ptr<Entity> p1, const std::shared_ptr<Entity> p2) {
+        if (!p1 && !p2) return true;
+        if (!p1) return false;
+        if (!p2) return false;
+        return p1->id == p2->id;
+    }
     /// <summary>
     /// Named identifier with numeric ID
     /// </summary>

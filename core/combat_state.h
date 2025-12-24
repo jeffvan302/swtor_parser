@@ -158,15 +158,21 @@ namespace swtor {
 		/// Constructor from entity
 		/// </summary>
 		/// <param name="ent">Entity to track</param>
-		EntityState(Entity ent) : id(ent.id), entity(ent) {}
+		EntityState(std::shared_ptr<Entity> ent);
+
+		/// <summary>
+		/// Constructor from entity
+		/// </summary>
+		/// <param name="ent">Entity to track</param>
+		EntityState(Entity ent);
 
 		/// <summary>
 		/// Get current hit points as a percentage
 		/// </summary>
 		/// <returns>Hit points percentage (0.0 to 100.0)</returns>
 		inline float_t hitpoints_percent() const {
-			if (entity.hp.max > 0) {
-				return static_cast<float_t>((entity.hp.current * 100) / entity.hp.max);
+			if (entity->hp.max > 0) {
+				return static_cast<float_t>((entity->hp.current * 100) / entity->hp.max);
 			}
 			return 0;
 		}
@@ -176,14 +182,14 @@ namespace swtor {
 		/// </summary>
 		/// <returns>Current hit points</returns>
 		inline int hit_points_current() const {
-			return static_cast<int>(entity.hp.current);
+			return static_cast<int>(entity->hp.current);
 		}
 		/// <summary>
 		/// Get maximum hit points
 		/// </summary>
 		/// <returns>Maximum hit points</returns>
 		inline int hit_points_max() const {
-			return static_cast<int>(entity.hp.max);
+			return static_cast<int>(entity->hp.max);
 		}
 
 
@@ -194,12 +200,12 @@ namespace swtor {
 		/// <summary>
 		/// Entity data
 		/// </summary>
-		Entity entity{};
+		std::shared_ptr<Entity> entity{};
 
 		/// <summary>
 		/// Current target entity
 		/// </summary>
-		Entity target{};
+		std::shared_ptr<Entity> target{};
 
 		/// <summary>
 		/// Shared pointer to target's entity state
@@ -255,7 +261,7 @@ namespace swtor {
 		/// <summary>
 		/// Number of attacks deflected
 		/// </summary>
-		uint16_t total_defect_done{ 0 };
+		uint16_t total_deflect_done{ 0 };
 		/// <summary>
 		/// Number of attacks dodged
 		/// </summary>
@@ -289,12 +295,12 @@ namespace swtor {
 		/// Check if entity is a player
 		/// </summary>
 		/// <returns>True if player</returns>
-		inline bool is_player() const { return entity.is_player; }
+		inline bool is_player() const { return entity->is_player; }
 		/// <summary>
 		/// Check if entity is a companion
 		/// </summary>
 		/// <returns>True if companion</returns>
-		inline bool is_companion() const { return entity.is_companion; }
+		inline bool is_companion() const { return entity->is_companion; }
 
 		/// <summary>
 		/// Effects that are applied to this entity
@@ -377,6 +383,9 @@ namespace swtor {
 		/// Reset all entity data
 		/// </summary>
 		inline void reset() {
+			for (auto& ent : entities_) {
+				ent.reset();
+			}
 			entities_.clear();
 			entities_.reserve(128);
 			last_combat_state = false;
@@ -391,10 +400,6 @@ namespace swtor {
 		/// Previous combat state
 		/// </summary>
 		bool last_combat_state{ false };
-		/// <summary>
-		/// Empty entity placeholder
-		/// </summary>
-		Entity empty_entity_{};
 		/// <summary>
 		/// Reset entities for new combat
 		/// </summary>
@@ -585,6 +590,10 @@ namespace swtor {
 		/// Time when combat was last exited
 		/// </summary>
 		int64_t last_combat_exit_{ -1 };
+		/// <summary>
+		/// Time when last damage was done
+		/// </summary>
+		int64_t last_damage_time_{ -1 };
 		/// <summary>
 		/// Time of last death
 		/// </summary>
