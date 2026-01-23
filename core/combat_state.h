@@ -11,8 +11,15 @@
 #include <format>
 #include <locale>
 
+
+
 namespace swtor {
 
+
+	struct action_data {
+		uint64_t time;
+		uint64_t action;
+	};
 	
 	/// <summary>
 	/// Represents an applied effect (buff/debuff/DoT/HoT) on a target
@@ -288,6 +295,62 @@ namespace swtor {
 		uint16_t total_immune_done{ 0 };
 
 		/// <summary>
+		/// Number of attacks immuned
+		/// </summary>
+		uint16_t total_actions{ 0 };
+
+		/// <summary>
+		/// Action List and times
+		/// </summary>
+		std::vector<action_data> action_times;
+
+		inline double calculate_gcd(uint64_t range = 16000) {
+			if (action_times.size() < 3) return 9.90;
+			uint64_t gap_time_total = 0;
+			uint64_t gap_time_count = 0;
+			uint64_t min_val = 60000;
+			uint64_t max_val = 0;
+			int pos = action_times.size() - 1;
+			uint64_t start_time = action_times[pos--].time;
+			uint64_t current_time = start_time;
+			while (pos >= 0 && (start_time - current_time) < range) {
+				uint64_t new_time = action_times[pos--].time;
+				uint64_t gap_time = current_time - new_time;
+				if (gap_time > 1000 && gap_time < 16000) {
+					gap_time_total += gap_time;
+					gap_time_count++;
+					if (gap_time > max_val) max_val = gap_time;
+					if (gap_time < min_val) min_val = gap_time;
+				}
+				current_time = new_time;
+			}
+			if (gap_time_count > 2) {
+				if (max_val > 1500) {
+					gap_time_count--;
+					gap_time_total = gap_time_total - max_val;
+				}
+				if (min_val < 1400) {
+					gap_time_count--;
+					gap_time_total = gap_time_total - min_val;
+				}
+			}
+			double results = 9.90;
+			if (gap_time_count >= 1) {
+				results = ((double)gap_time_total / (double)gap_time_count);
+				results = results / 1000.0000;
+			}
+			return results;
+		}
+
+		inline double calculate_amp(uint64_t combat_time_ms) {
+			double time_min = combat_time_ms;
+			time_min = time_min / 60000;
+			double results = total_actions;
+			results = results / time_min;
+			return results;
+		}
+
+		/// <summary>
 		/// Whether entity is currently dead
 		/// </summary>
 		bool is_dead{ false };
@@ -523,6 +586,11 @@ namespace swtor {
 			}
 			return false;
 		}
+		/// <summary>
+		/// Parse ability activate event
+		/// </summary>
+		/// <param name="line">Combat line</param>
+		inline void combat_state_parse_abilityactivate(const CombatLine& line);
 		/// <summary>
 		/// Parse discipline change event
 		/// </summary>

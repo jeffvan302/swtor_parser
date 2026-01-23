@@ -177,7 +177,13 @@ namespace swtor {
 				source->owner = true;
 			}
 		}
-
+		if (line == EventActionType::AbilityActivate) {
+			if (source != nullptr) {
+				source->total_actions++;
+				action_data action{ line.t.refined_epoch_ms , line.ability.id };
+				source->action_times.push_back(action);
+			}
+		}
 		if (line == EventActionType::TargetSet) {
 			// Currently no state changes needed for energy changes
 			if (source != nullptr && target != nullptr) {
@@ -336,6 +342,20 @@ namespace swtor {
 		return fighting_players_.size();
 	}
 
+	inline void CombatState::combat_state_parse_abilityactivate(const CombatLine& line) {
+		if (in_combat_ && died_in_combat_ && line.source == owner_ && monitor_combat_state_) {
+			int64_t time_diff = line.t.refined_epoch_ms - combat_revive_line_.t.refined_epoch_ms;
+			if (time_diff < SAME_COMBAT_TIME_AFTER_REVIVE) {
+				monitor_combat_state_ = false;
+				died_in_combat_ = false;
+			}
+			else {
+				combat_state_parse_exitcombat(line);
+				last_combat_exit_ = last_damage_time_;
+			}
+		}
+	}
+
 	inline void CombatState::combat_state_parse_disciplinechange(const CombatLine& line) {
 		// Currently no state changes needed for discipline change
 		if (in_combat_) {
@@ -465,6 +485,10 @@ namespace swtor {
 		}
 		if (line == EventActionType::ExitCombat) {
 			combat_state_parse_exitcombat(line);
+			return;
+		}
+		if (line == EventActionType::AbilityActivate) {
+			combat_state_parse_abilityactivate(line);
 			return;
 		}
 	}

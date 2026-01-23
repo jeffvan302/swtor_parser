@@ -579,16 +579,16 @@ int call_file_processing_v2(std::string file_name, bool do_printout = true, floa
 			int64_t time_diff = new_time_set - time_set;
             if (time_diff > 1000 && do_printout) {
 				time_set = new_time_set;
-                std::cout << "\rDPS: " << std::setw(8) << std::fixed << std::setprecision(2) << last_dps << std::flush;
+                std::cout << "\rDPS: " << std::setw(8) << std::fixed << std::setprecision(2) << last_dps << " GCD: " << mng.get_parse_data().entities->owner()->calculate_gcd() << std::flush;
                 if (mng.get_parse_data().entities->owner() != nullptr) {
                     auto hp_perc = mng.get_parse_data().entities->owner()->hitpoints_percent();
                     std::cout << "  HP%: " << std::setw(6) << std::fixed << std::setprecision(2) << hp_perc << "%" << std::flush;
                     if (mng.get_parse_data().entities->owner()->is_dead) {
                         std::cout << " (DEAD)" << std::flush;
 					}
-                    if (!mng.get_parse_data().entities->owner()->target.is_player) {
-                        std::cout << " " << mng.get_parse_data().entities->owner()->target.name << std::flush;
-                        if (mng.get_parse_data().entities->owner()->target.hp.max > 5000000 && mng.get_parse_data().entities->owner()->target_owner != nullptr) {
+                    if (!mng.get_parse_data().entities->owner()->target->is_player) {
+                        std::cout << " " << mng.get_parse_data().entities->owner()->target->name<< std::flush;
+                        if (mng.get_parse_data().entities->owner()->target->hp.max > 5000000 && mng.get_parse_data().entities->owner()->target_owner != nullptr) {
 							auto b_hp_perc = mng.get_parse_data().entities->owner()->target_owner->hitpoints_percent();
                             std::cout << "  boss HP%: " << std::setw(6) << std::fixed << std::setprecision(2) << b_hp_perc << "%" << std::flush;
                         }
