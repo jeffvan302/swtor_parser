@@ -66,6 +66,8 @@ namespace swtor {
 				hold_tmp = nullptr;
 			}
 			else {
+				entities_[pos]->action_times.clear();
+				entities_[pos]->total_actions = 0;
 				entities_[pos]->target_owner = nullptr;
 				entities_[pos]->death_count = 0;
 				entities_[pos]->revive_count = 0;

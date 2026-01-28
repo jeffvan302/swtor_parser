@@ -17,7 +17,13 @@ namespace swtor {
 
 
 	struct action_data {
+		/// <summary>
+		/// epoch time
+		/// </summary>
 		uint64_t time;
+		/// <summary>
+		/// Ability or effect action ID
+		/// </summary>
 		uint64_t action;
 	};
 	
@@ -316,7 +322,7 @@ namespace swtor {
 			while (pos >= 0 && (start_time - current_time) < range) {
 				uint64_t new_time = action_times[pos--].time;
 				uint64_t gap_time = current_time - new_time;
-				if (gap_time > 1000 && gap_time < 16000) {
+				if (gap_time > 1000 && gap_time < 1550) {
 					gap_time_total += gap_time;
 					gap_time_count++;
 					if (gap_time > max_val) max_val = gap_time;
@@ -335,7 +341,7 @@ namespace swtor {
 				}
 			}
 			double results = 9.90;
-			if (gap_time_count >= 1) {
+			if (gap_time_count > 1) {
 				results = ((double)gap_time_total / (double)gap_time_count);
 				results = results / 1000.0000;
 			}
@@ -343,6 +349,8 @@ namespace swtor {
 		}
 
 		inline double calculate_amp(uint64_t combat_time_ms) {
+			if (combat_time_ms < 3000) return 0;
+			if (total_actions < 2) return 0;
 			double time_min = combat_time_ms;
 			time_min = time_min / 60000;
 			double results = total_actions;

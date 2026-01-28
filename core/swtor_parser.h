@@ -546,7 +546,7 @@ namespace swtor {
         /// Year
         /// </summary>
         uint32_t year{ 0 };
-        /// <summary>
+        /// <summary> 
         /// Month
         /// </summary>
         uint32_t month{ 0 };
